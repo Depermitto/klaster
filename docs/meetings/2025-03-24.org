@@ -1,0 +1,10 @@
+#+AUTHOR: Piotr Jabłoński
+#+DATE: 24 marca 2025
+
+* Elementy do dostarczenia
+  - _BADANIA_
+  - przegląd literatury (Google Scholar, Scopus)
+    - przeszukać publikacje (od 2020/2021 roku)
+    - znaleźć zbiory benchmarkowe (segmenty, dane tabularyczne, itd...)
+  - kmeans, dbscan/hdbscan, deep clustering
+  - miary jakości grupowania (biblioteka, własna implementacja)

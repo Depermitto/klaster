@@ -1,0 +1,17 @@
+#+AUTHOR: Piotr Jabłoński
+#+DATE: 4 lutego 2025
+
+* Informacje wstępne
+- ai.ii.pw.edu.pl (chmura), open-stack, co to vpn
+- zdjęcie, telefon, o sobie
+- konto na slacku, informacja ze slacka "dzień dobry"
+- konto na overleaf, zapoznać się z latex
+- email: *piotr.jablonski10.stud@pw.edu.pl*
+- do końca tygodnia zaproszenie na slacka, napisać jak nie będzie
+- przekartkować Wstęp do Sztucznej Inteligencji oba tomy (w miarę ogarnąć gdzie co jest)
+- pierwszy miesiąc ustalanie, czytanie literatury
+- część implementacyjna, część badawcza (serwer)
+- jeden miesiąc wakacji na pracę (skończyć w grudniu 💀)
+
+* Ma być
+- gitlab opanowany, repo, slack do komunikacji, latex opanowany

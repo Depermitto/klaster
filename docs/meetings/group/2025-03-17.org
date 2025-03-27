@@ -1,0 +1,27 @@
+#+AUTHOR: Piotr Jabłoński
+#+DATE: 17 marca 2025
+
+* Środowisko
+  - dodać każdego + prowadzący (robert.nowak@pw.edu.pl) na github jako Developer
+  - Github Issues
+  - generowanie dokumentacji przez *cargo*
+  - niech każdy zaprezentuje _coś_ na za dwa tygodnie
+  - wymagania funkcjonalne w kodzie (zamiać robić dokumentację)
+  - wymyśleć nazwę i tak nazwać repo
+
+** *Github Actions*
+   DEADLINE: <2025-03-31 pon>
+   - zrobić dokument w Markdown opisujący Github Actions
+   - reguły, progres akcji
+
+* Overleaf
+  - szablon pracy dyplomowej w LaTeX, zmienić na swoje nazwisko, dodać (robert.nowak@pw.edu.pl)
+  - poprosić o zrobienie projektu na Overleaf (wysłać nazwę na Slacku), na głównym kanale i swój email, żeby dodać
+
+* Smaczki
+  - dostępny dysk S3 2TB
+  - znaleźć i uruchomić program konferencyjny do hackathonów na vmce
+    - email, imie i nazwisko. Dostęp do plików i zadań
+    - propozycja nadzoru/udziału w hackathonie
+  - cel pracy
+  - poprosić Pawła Zawistowskiego na Slacku o wejściówkę do pokoju dyplomantów

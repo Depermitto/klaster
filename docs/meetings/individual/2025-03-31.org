@@ -1,0 +1,8 @@
+#+AUTHOR: Piotr Jabłoński
+#+DATE: 31 marca 2025
+
+* Elementy do dostarczenia
+  - Generowanie dokumentacji dla całego projektu niezależnie od ilości i jakich języków
+  - Zapoznać się z rozwiązaniami kolegów i chociaż spróbować ich użyć
+  - Github Issues - zadania do wykonania. =Użytkownik nie sprawdza=
+  - Wymagania - warunek do implementacji, co trzeba zrobić krok po kroku. =Użytkownik definiuje=

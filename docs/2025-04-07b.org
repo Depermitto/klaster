@@ -1,0 +1,36 @@
+#+AUTHOR: Piotr Jabłoński
+#+DATE: 7 kwietnia 2025
+
+* Walidacja jakości
+** [[https://en.wikipedia.org/wiki/Silhouette_(clustering)][Silhouette]]
+   Przykłady użycia:
+   - [[https://github.com/rust-ml/linfa][linfa]] - użycie danych syntetycznych, link do kodu [[https://github.com/rust-ml/linfa/blob/5272ad1a17dcfb639d1e4635ba62bcdf0889d7b8/src/metrics_clustering.rs][tutaj]].
+   - [[https://d1wqtxts1xzle7.cloudfront.net/62418923/10218ijcsit0320200319-11174-1s9west-libre.pdf?1584750292=&response-content-disposition=inline%3B+filename%3DCLUSTERING_ALGORITHM_FOR_A_HEALTHCARE_DA.pdf&Expires=1744039900&Signature=DH-aEruOom2jKagdb77WCn7OZ6V-GiAoTbaIsSixZqIUVfQ2D4efMeDwwiyxvP9wq0pDJbX3Gh2PgJHLKRfVBcskomLhViPVhYiB3OPfzhdLnOaROW~Da2vE~5fdM6ALR3xkhq76mXltv-Jl47QSaAgrTuvOQsJj37xP17mmyA6YfbGWeeOSl96qOFbKYQke0l6daQIu11TeNLqOrUqB4LU~P9Sg0GKitIl1rkf0b9PnUbQFtiUVIRaHJcaRl6v-vJexAN63W6dsFldZMKvVm3rRyy4GqBiFtnAq0AX8Ba2hXMNzogjUOQ1kXVdvAd8CM6Yb8IlCq9pvSCxkprbOtw__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA][Clustering algorithm for a healthcare dataset using silhouette score value]].
+
+** [[https://github.com/scikit-learn/scikit-learn][scikit-learn]]
+   1) Benchmark na danych syntetycznych. Link do kodu [[https://github.com/scikit-learn/scikit-learn/blob/812ff67e6725a8ca207a37f5ed4bfeafc5d1265d/benchmarks/bench_plot_fastkmeans.py][tutaj]].
+   2) Analiza klastrów poprzez użycie indeksu Silhouette. Link do kodu [[https://github.com/scikit-learn/scikit-learn/blob/812ff67e6725a8ca207a37f5ed4bfeafc5d1265d/benchmarks/bench_plot_fastkmeans.py][tutaj]].
+   3) Demo użycia k-średnich na datasecie /Digits/. Link do kodu [[https://github.com/scikit-learn/scikit-learn/blob/812ff67e6725a8ca207a37f5ed4bfeafc5d1265d/examples/cluster/plot_kmeans_digits.py][tutaj]]. Użyte metryki:
+      - [[https://scikit-learn.org/stable/modules/generated/sklearn.metrics.homogeneity_score.html][Homogeneity score]], papier [[file:literature/V-Measure: conditional entropy-based external cluster evaluation measure.pdf][tutaj]],
+      - [[https://scikit-learn.org/stable/modules/generated/sklearn.metrics.v_measure_score.html][V-measure score]], papier [[file:literature/V-Measure: conditional entropy-based external cluster evaluation measure.pdf][tutaj]],
+      - [[https://scikit-learn.org/stable/modules/generated/sklearn.metrics.adjusted_rand_score.html][Adjusted rand index]], link do wikipedii [[https://en.wikipedia.org/wiki/Rand_index#Adjusted_Rand_index][tutaj]], papier [[file:literature/Minimum adjusted Rand index for two clusterings of a given size.pdf][tutaj]],
+      - [[https://scikit-learn.org/stable/modules/generated/sklearn.metrics.adjusted_rand_score.html][Adjusted mutual information]], link do wikipedii [[https://en.wikipedia.org/wiki/Adjusted_mutual_information][tutaj]], papier [[file:literature/Information Theoretic Measures for Clusterings Comparison: Variants, Properties, Normalization and Correction for Chance.pdf][tutaj]].
+
+** Inne indeksy:
+   1) [[https://en.wikipedia.org/wiki/Dunn_index][Dunn index]]
+   2) [[https://en.wikipedia.org/wiki/Rand_index][Rand index]]
+   3) [[https://en.wikipedia.org/wiki/F-score][F-score]]
+   4) [[https://en.wikipedia.org/wiki/Davies%E2%80%93Bouldin_index][Davies–Bouldin index]]
+   5) [[https://en.wikipedia.org/wiki/Dice-S%C3%B8rensen_coefficient][Dice-Sørensen coefficient]]
+   6) [[https://en.wikipedia.org/wiki/Fowlkes%E2%80%93Mallows_index][Fowlkes–Mallows index]]
+   7) [[https://en.wikipedia.org/wiki/Jaccard_index][Jaccard index]]
+
+* Dane benchmarkowe
+  1) Obie biblioteki wygenerowały syntetycznie dane do benchmarkowania, natomiast /scikit-learn/ wykorzystało również dataset /Digits/ do testowania. Link do dokumentacji datasetu [[https://scikit-learn.org/1.5/auto_examples/datasets/plot_digits_last_image.html][tutaj]].
+
+  2) Modyfikowany algorytm K-means opracowany w papierze [[file:literature/A hybridized K-means clustering approach for high dimensional dataset.pdf][tutaj]], testowany na danych [[https://www.kaggle.com/datasets/uciml/breast-cancer-wisconsin-data][Breast Cancer Wisconsin]] (również opisane w [[file:literature/Analysis of k-means clustering approach on the breast cancer Wisconsin dataset.pdf][tym]] papierze), [[https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database][Pima Indians Diabetes]] oraz [[https://www.kaggle.com/datasets/sugataghosh/spect-heart-dataset][SPECT Heart]]. Jakość walidowana przez [[https://hlab.stanford.edu/brian/error_sum_of_squares.html][SSE]].
+
+  3) Porównanie K-means algorytmów (partycjonujących) oraz hierarchicznych alg. grupujących na zadaniu segmentowaniu obrazów. Ponad 20 datasetów, papier [[file:literature/A comprehensive survey of image segmentation, clustering methods, performance parameters, and benchmark datasets.pdf][tutaj]].
+
+* Inne
+  - kmeans na segmentacji obrazów, papier [[file:literature/K-means on image segmentation.pdf][tutaj]] i [[file:literature/K-means and fuzzy k-means on image segmentation.pdf][tutaj]].

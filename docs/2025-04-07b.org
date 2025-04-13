@@ -34,3 +34,9 @@
 
 * Inne
   - kmeans na segmentacji obrazów, papier [[file:literature/K-means on image segmentation.pdf][tutaj]] i [[file:literature/K-means and fuzzy k-means on image segmentation.pdf][tutaj]].
+
+* TODO Zrobić potok
+  - wybrać zbiór danych (BCW), wybrać algorytm bazowy i odpalić go. Uruchomić w scikit-learn (kmeans, hdbscan) z miarami
+  - python: ground truth
+  - opcjonalnie: uruchomić te algorytmy w rust i sprawdzić jak (czy) działają
+  - teoretycznie: dobre ale w wolne w python, słabe ale szybkie w rust

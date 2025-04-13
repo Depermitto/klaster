@@ -128,6 +128,10 @@ pub fn is_prime(n: u32) -> bool {
 }
 
 /// Represents a complex number type. Implements basic addition, multiplication and division operations.
+///
+/// # Fields
+/// - `real` - real part of complex number
+/// - `imag` - imaginary part of complex number
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Complex {
     pub real: f64,
@@ -136,6 +140,7 @@ pub struct Complex {
 
 impl Complex {
     /// Adds two complex numbers.
+    ///
     /// # Example
     /// ```
     /// use example::math::Complex;

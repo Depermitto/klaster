@@ -1,4 +1,4 @@
-site_name: Simple Math
+site_name: Generate Documentation from Code
 use_directory_urls: false
 
 theme:
@@ -25,4 +25,8 @@ plugins:
 
 nav:
   - Home: index.md
-  - API Reference: api.md
+  - Python API Reference: pythonapi.md
+  - Rust API Reference: /home/permito/PW/Inżynierka/tutorial/rust/target/doc/example/index.html
+  - Dokumentuj jak wąż: howtopython.md
+  - Dokumentuj jak krab: howtorust.md
+  - Dokumentuj w MkDocs: howtomkdocs.md 

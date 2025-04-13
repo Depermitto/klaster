@@ -1,5 +1,6 @@
-//! This is an example project taken from The Rust Programming Language book
-//! <https://doc.rust-lang.org/stable/book/ch12-00-an-io-project.html>
+//! This is an example project with some simple math operations.
+//!
+//! Link to the tutorial and the Python documentation - [here](file:///home/permito/PW/Inżynierka/tutorial/site/index.html).
 
 pub mod math;
 

@@ -146,6 +146,14 @@ class Complex:
         """
         Adds two complex numbers.
 
+        Args:
+        a: First integer to add.
+        b: Second integer to add.
+
+        Returns:
+        The sum of a and b.
+
+
         Examples:
             >>> a = Complex(1.0, 2.0)
             >>> b = Complex(3.0, 4.0)

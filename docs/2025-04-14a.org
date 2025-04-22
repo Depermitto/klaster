@@ -1,0 +1,9 @@
+#+AUTHOR: Piotr Jabłoński
+#+DATE: 14 kwietnia 2025
+
+* DONE Dosłać jeden dokument w formacie Markdown na Slacku
+  DEADLINE: <2025-04-17 czw 12:00>
+* TODO Github CI/CD
+* TODO Github Issues
+* TODO Doorstop - wymaganie funkcjonalne
+  Posiada wymaganie testowe, każde odnosi się do pliku/klasy z testami

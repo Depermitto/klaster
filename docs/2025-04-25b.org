@@ -1,0 +1,11 @@
+#+AUTHOR: Piotr Jabłoński
+#+DATE: 25 kwietnia 2025
+
+* TODO Do zrobienia
+  - Zdefiniować baseline od każdego z algorytmów, (taki-taki alg. z takiej biblioteki w takiej wersji) w formie tabelki
+  - Poszukać innych gotowców (w Python i Rust), wybrać najbardziej popularny/najciekawszy konkurencyjny. 'Popularne algorytmy, wiele implementacji, starsze i nowsze...i do tego porównujemy'
+  - Trochę informacji o samych algorytmach
+  - dane: BCW, MNIST, STL, REUTERS, przeszukać literaturę
+  - miary: Acc, V-measure, ARI, Silhouette
+  - uruchomić w Rust
+  - 10 elementów do wyboru, wybrać 3. Najbardziej popularny, tego którego ludzie używają

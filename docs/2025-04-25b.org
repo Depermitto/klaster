@@ -5,7 +5,23 @@
   - Zdefiniować baseline od każdego z algorytmów, (taki-taki alg. z takiej biblioteki w takiej wersji) w formie tabelki
   - Poszukać innych gotowców (w Python i Rust), wybrać najbardziej popularny/najciekawszy konkurencyjny. 'Popularne algorytmy, wiele implementacji, starsze i nowsze...i do tego porównujemy'
   - Trochę informacji o samych algorytmach
+
 ** K-means
+   K-means to jeden z najprostszych algorytmów grupowania (klastrowania), który dzieli dane na k grup (klastrów). Algorytm:
+   1. Wybieramy liczbę klastrów k
+   2. Losowo inicjujemy k centroidów (środków klastrów)
+   3. Przypisujemy każdy punkt danych do najbliższego centroidu
+   4. Obliczamy nowe centroidy jako średnie punktów w klastrze
+   5. Powtarzamy kroki 3-4, aż centroidy się ustabilizują
+
+*** Zalety
+    - Szybki i prosty w implementacji
+    - Działa dobrze, gdy klastry są kuliste i podobnej wielkości
+
+*** Wady
+    - Wymaga ustalenia liczby klastrów ~k~ z góry
+    - Nie radzi sobie z skomplikowanymi kształtami danych
+
 *** Python
     1. =K-means Scikit-learn= v1.6.1 - najpopularniejsza aktualnie (2025 maj 4)
     2. MiniBatch K-means Scikit-learn - przetwarzanie danych w małych partiach
@@ -15,6 +31,7 @@
     6. PyCaret - automatyzacja
     7. [[https://pyclustering.github.io][PyClustering]] - porzucony od 2021
     8. [[https://github.com/algo-hhu/fair-kmeans][Fair K-means]] - Heinrich Heine University Research
+
 *** Rust (https://rust-ml.github.io/book/3_kmeans.html)
     1. =K-means Linfa= v0.7.1 (https://crates.io/crates/linfa)
     2. =K-means colors= v0.7.0 (https://github.com/okaneco/kmeans-colors) - biblioteka do znajowania dominujących kolorów w obrazach używając K-means++
@@ -22,19 +39,61 @@
     4. Rust bindings do [[https://github.com/Enet4/faiss-rs][FAISS]]
     5. [[https://github.com/AtheMathmo/rusty-machine][Rusty Machine]] - porzucnoa w 2021
     6. Mała biblioteka do K-means++ (https://crates.io/crates/kmeans)
-** HDBSCAN
+
+** DBSCAN (Density-Based Spatial Clustering of Applications with Noise)
+   - Działa na zasadzie szukania gęstych obszarów danych
+   - Wymaga dwóch parametrów
+     - ~eps~ (maksymalna odległość między punktami w klastrze)
+     - ~min_samples~ (minimalna liczba punktów, aby utworzyć klaster)
+
+*** Wady
+     - Trudność w dobraniu ~eps~ dla danych o różnej gęstości
+     - Nie radzi sobie dobrze z hierarchicznymi strukturami
+
+** HDBSCAN (Hierarchical DBSCAN)
+   - Rozwinięcie DBSCAN, które automatycznie dobiera parametry
+   - Działa w dwóch etapach
+   1. Buduje hierarchię klastrów na podstawie gęstości
+   2. Wybiera optymalne klastry, eliminując te niestbilne
+
+*** Zalety w porównaniu do DBSCAN
+    - Nie wymaga ~eps~, lepiej działa przy różnej gęstości danych
+    - Znajduje klastry różnej wielkości i kształtu
+    - Automatycznie wykrywa szum (punkty odstające)
+
+*** Wady
+    - Wolniejszy niż DBSCAN
+    - Wrażliwy na parametr ~min_cluster_size~
+
 *** Python
     1. =Oficjalna implementacja HDBSCAN w Python= v0.8.40 (https://github.com/scikit-learn-contrib/hdbscan)
     2. HDBSCAN w scikit-learn-contrib
     3. fast HDBSCAN (https://github.com/TutteInstitute/fast_hdbscan) - wielowątkowa implementacja HDBSCAN przez autorów oryginalnej implementacji. Ograniczona funkcjonalność względem punktu 2.
     4. CuML - Implementacja zoptymalizowana pod GPU (biblioteka RAPIDS od NVIDIA)
     PyClustering, PyCaret - DBSCAN
+
 *** Rust (https://rust-ml.github.io/book/4_dbscan.html)
     1. =hdbscan= - najpopularniejsza implementacja (https://crates.io/crates/hdbscan)
     2. [[https://github.com/petabi/petal-clustering][petal-clustering]] - kolekcja algorytmów gęstościowych grupujących
     3. odzyskiwanie złożonych genomów z metagenomów przy użyciu HDBSCAN - https://crates.io/crates/rosella
     Mało implementacji
+
 ** Algorytm głębokiego klastrowania ([[file:literature/deep/Survery on deep clustering.pdf][ankieta porównawcza]])
+   - Łączy metody uczenia głębokiego (np. autoenkodery) z klastrowaniem
+   - Działa w trzech krokach
+     1. Uczenie reprezentacji danych (np. zmniejszenie wymiarowości)
+     2. Stosowanie klasycznego klastrowania (np. K-means) na nowych cechach
+     3. Optymalizacja, aby punkty w klastrach były bardziej spójne
+
+*** Zalety
+     - Lepsza skuteczność na złożonych danych (obrazy, tekst)
+     - Może znaleźć nietypowe struktury, których nie wykryją tradycyjne metody
+
+*** Wady
+     - Wymaga dużej mocy obliczeniowej
+     - Trudniejsza implementacja i dłuższy czas uczenia
+
+*** Proponowane rozwiązania/Warianty
    1. DEC - Używa sieci neuronowej do mapowania danych w przestrzeń, gdzie K-means działa lepiej, TensorFlow, [[file:literature/deep/DEC.pdf][https://github.com/XifengGuo/DEC-keras, papier]]
    2. DCN - Jednoczesna optymalizacja autoenkodera i K-means, https://github.com/xuyxu/Deep-Clustering-Network, [[file:literature/deep/DCN.pdf][papier]]
    3. DeepCluster - PyTorch (https://github.com/facebookresearch/deepcluster)
@@ -42,6 +101,7 @@
    5. =N2D= commit hash: 6c35936 - https://github.com/rymc/n2d, [[file:literature/deep/N2D.pdf][papier]]
    6. FCMI  - Deep Fair Clustering via Maximizing and Minimizing Mutual Information (https://github.com/PengxinZeng/2023-CVPR-FCMI)
    Należy stworzyć implementację od zera, nie ma jednego właściwego czy nawet pospolitego rozwiązania. Prawdopodobnie na samym początku najbardziej realistycznym podejściem jest redukcja wymiarowości przez autoenkoder i grupowanie używając K-means.
+
 ** Wybór:
    | Język  | Algorytm        | Biblioteka          |  Wersja |
    |--------+-----------------+---------------------+---------|
@@ -54,9 +114,11 @@
    | Rust   | Deep Clustering | -                   |       - |
 
 * Zbiory danych
+
 ** Syntetyczne
    1. *blobs*
    2. moons
+
 ** Obrazy
    1. *[[https://www.kaggle.com/datasets/hojjatk/mnist-dataset][MNIST]]*
    2. [[https://www.kaggle.com/datasets/jessicali9530/stl10][STL-10]]
@@ -67,15 +129,18 @@
    7. [[https://www.cs.cmu.edu/afs/cs/project/PIE/MultiPie/Multi-Pie/Home.html][CMU Multi-PIE]]
    8. USPS - redundantny przy MNIST
    9. Full ImageNet (trudne)
+
 ** Tekst
    1. *[[https://paperswithcode.com/dataset/reuters-21578][REUTERS-21578]]*
    2. [[https://paperswithcode.com/dataset/20-newsgroups][20 Newsgroups]]
    3. IMDB (trudne)
    4. Stack Overflow (trudne)
+
 ** Tabularyczne
    1. *[[https://www.kaggle.com/datasets/uciml/breast-cancer-wisconsin-data][BCW]]* (łatwe)
    2. [[https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database][PID]]
    3. [[https://www.kaggle.com/datasets/sugataghosh/spect-heart-dataset][SPECT Heart]]
+
 ** Wybór:
    - syntetycznie wygenerowane dane
    - MNIST, STL-10
@@ -95,6 +160,7 @@
   10. Davies-Bouldin Index - średnie podobieństwo między klastrami (odwrotność jakości)
   11. Dice-Sørensen coefficient - podobieństwo między klastrami, używane głównie w segmentacji obrazów
   12. Jaccard Index - podobieństwo między zbiorami
+
 ** Wybór:
    - ACC/V-measure - Accuracy jest intuicyjna i prosta w interpretacji, ale nie działa dobrze dla danych niezbalansowanych, dlatego dla datasetu REUTERS użyję V-measure
    - AMI - działa dobrze dla danych wysokowymiarowych (MNIST, REUTERS), odporna na niezbalansowane klasy, bardziej czuła na drobne struktury niż ARI

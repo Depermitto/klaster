@@ -1,11 +1,101 @@
 #+AUTHOR: Piotr Jabłoński
 #+DATE: 25 kwietnia 2025
 
-* TODO Do zrobienia
+* Algorytmy
   - Zdefiniować baseline od każdego z algorytmów, (taki-taki alg. z takiej biblioteki w takiej wersji) w formie tabelki
   - Poszukać innych gotowców (w Python i Rust), wybrać najbardziej popularny/najciekawszy konkurencyjny. 'Popularne algorytmy, wiele implementacji, starsze i nowsze...i do tego porównujemy'
   - Trochę informacji o samych algorytmach
-  - dane: BCW, MNIST, STL, REUTERS, przeszukać literaturę
-  - miary: Acc, V-measure, ARI, Silhouette
-  - uruchomić w Rust
-  - 10 elementów do wyboru, wybrać 3. Najbardziej popularny, tego którego ludzie używają
+** K-means
+*** Python
+    1. =K-means Scikit-learn= v1.6.1 - najpopularniejsza aktualnie (2025 maj 4)
+    2. MiniBatch K-means Scikit-learn - przetwarzanie danych w małych partiach
+    3. SciPy - mniejszy narzut, szybsza dla małych danych
+    4. FAISS - optymalizowana pod kątem wydajności (CPU/GPU)
+    5. CuML - Implementacja zoptymalizowana pod GPU (biblioteka RAPIDS od NVIDIA)
+    6. PyCaret - automatyzacja
+    7. [[https://pyclustering.github.io][PyClustering]] - porzucony od 2021
+    8. [[https://github.com/algo-hhu/fair-kmeans][Fair K-means]] - Heinrich Heine University Research
+*** Rust (https://rust-ml.github.io/book/3_kmeans.html)
+    1. =K-means Linfa= v0.7.1 (https://crates.io/crates/linfa)
+    2. =K-means colors= v0.7.0 (https://github.com/okaneco/kmeans-colors) - biblioteka do znajowania dominujących kolorów w obrazach używając K-means++
+    3. [[https://github.com/smartcorelib/smartcore][Smartcore]] - obszerna biblioteka do uczenia naukowego w Rust
+    4. Rust bindings do [[https://github.com/Enet4/faiss-rs][FAISS]]
+    5. [[https://github.com/AtheMathmo/rusty-machine][Rusty Machine]] - porzucnoa w 2021
+    6. Mała biblioteka do K-means++ (https://crates.io/crates/kmeans)
+** HDBSCAN
+*** Python
+    1. =Oficjalna implementacja HDBSCAN w Python= v0.8.40 (https://github.com/scikit-learn-contrib/hdbscan)
+    2. HDBSCAN w scikit-learn-contrib
+    3. fast HDBSCAN (https://github.com/TutteInstitute/fast_hdbscan) - wielowątkowa implementacja HDBSCAN przez autorów oryginalnej implementacji. Ograniczona funkcjonalność względem punktu 2.
+    4. CuML - Implementacja zoptymalizowana pod GPU (biblioteka RAPIDS od NVIDIA)
+    PyClustering, PyCaret - DBSCAN
+*** Rust (https://rust-ml.github.io/book/4_dbscan.html)
+    1. =hdbscan= - najpopularniejsza implementacja (https://crates.io/crates/hdbscan)
+    2. [[https://github.com/petabi/petal-clustering][petal-clustering]] - kolekcja algorytmów gęstościowych grupujących
+    3. odzyskiwanie złożonych genomów z metagenomów przy użyciu HDBSCAN - https://crates.io/crates/rosella
+    Mało implementacji
+** Algorytm głębokiego klastrowania ([[file:literature/deep/Survery on deep clustering.pdf][ankieta porównawcza]])
+   1. DEC - Używa sieci neuronowej do mapowania danych w przestrzeń, gdzie K-means działa lepiej, TensorFlow, [[file:literature/deep/DEC.pdf][https://github.com/XifengGuo/DEC-keras, papier]]
+   2. DCN - Jednoczesna optymalizacja autoenkodera i K-means, https://github.com/xuyxu/Deep-Clustering-Network, [[file:literature/deep/DCN.pdf][papier]]
+   3. DeepCluster - PyTorch (https://github.com/facebookresearch/deepcluster)
+   4. SwAV - PyTorch, następca DeepCluster (https://github.com/facebookresearch/swav)
+   5. =N2D= commit hash: 6c35936 - https://github.com/rymc/n2d, [[file:literature/deep/N2D.pdf][papier]]
+   6. FCMI  - Deep Fair Clustering via Maximizing and Minimizing Mutual Information (https://github.com/PengxinZeng/2023-CVPR-FCMI)
+   Należy stworzyć implementację od zera, nie ma jednego właściwego czy nawet pospolitego rozwiązania. Prawdopodobnie na samym początku najbardziej realistycznym podejściem jest redukcja wymiarowości przez autoenkoder i grupowanie używając K-means.
+** Wybór:
+   | Język  | Algorytm        | Biblioteka          |  Wersja |
+   |--------+-----------------+---------------------+---------|
+   | Python | K-means         | scikit-learn        |   1.6.1 |
+   | Rust   | K-means         | linfa               |   0.7.1 |
+   | Rust   | K-means         | kmeans-colors       |   0.7.0 |
+   | Python | HDBSCAN         | hdbscan    (pypi)   |  0.8.40 |
+   | Rust   | HDBSCAN         | hdbscan  (crates)   |  0.10.0 |
+   | Python | Deep Clustering | github.com/rymc/n2d | 6c35936 |
+   | Rust   | Deep Clustering | -                   |       - |
+
+* Zbiory danych
+** Syntetyczne
+   1. *blobs*
+   2. moons
+** Obrazy
+   1. *[[https://www.kaggle.com/datasets/hojjatk/mnist-dataset][MNIST]]*
+   2. [[https://www.kaggle.com/datasets/jessicali9530/stl10][STL-10]]
+   3. [[https://www.kaggle.com/datasets/liusha249/imagenet10][ImageNet - 10]]
+   4. [[https://www.kaggle.com/datasets/jessicali9530/stanford-dogs-dataset][ImageNet - Dogs]]
+   5. [[https://www.kaggle.com/c/cifar-10/][CIFAR]]
+   6. [[https://www.kaggle.com/datasets/meetnagadia/human-action-recognition-har-dataset][HAR]]
+   7. [[https://www.cs.cmu.edu/afs/cs/project/PIE/MultiPie/Multi-Pie/Home.html][CMU Multi-PIE]]
+   8. USPS - redundantny przy MNIST
+   9. Full ImageNet (trudne)
+** Tekst
+   1. *[[https://paperswithcode.com/dataset/reuters-21578][REUTERS-21578]]*
+   2. [[https://paperswithcode.com/dataset/20-newsgroups][20 Newsgroups]]
+   3. IMDB (trudne)
+   4. Stack Overflow (trudne)
+** Tabularyczne
+   1. *[[https://www.kaggle.com/datasets/uciml/breast-cancer-wisconsin-data][BCW]]* (łatwe)
+   2. [[https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database][PID]]
+   3. [[https://www.kaggle.com/datasets/sugataghosh/spect-heart-dataset][SPECT Heart]]
+** Wybór:
+   - syntetycznie wygenerowane dane
+   - MNIST, STL-10
+   - BCW
+   - REUTERS-21578, 20 Newsgroups
+
+* Metryki
+  1. *ACC* - dokładność przypisania punktów do prawdziwych klas
+  2. *NMI/AMI* - wzajemną informację między klastrami a prawdziwymi klasami. AMI koryguje NMI o przypadek losowy
+  3. *ARI* - skorygowany współczynnik Rand, uwzględniający przypadek losowy
+  4. Homogeneity score - czy każdy klaster zawiera tylko punkty z jednej klasy
+  5. V-measure score - średnia harmoniczna homogeneity i completeness (czy wszystkie punkty jednej klasy są w tym samym klastrze)
+  6. Dunn Index - stosunek minimalnej odległości między klastrami do maksymalnej średnicy klastra, nie wymaga ground truth
+  7. Rand Index - proporcja poprawnie sparowanych punktów
+  8. F-score - średnia harmoniczna precyzja i recall dla par punktów
+  9. Fowlkes-Mallows Index - geometryczna średnia precyzji i recall dla par punktów
+  10. Davies-Bouldin Index - średnie podobieństwo między klastrami (odwrotność jakości)
+  11. Dice-Sørensen coefficient - podobieństwo między klastrami, używane głównie w segmentacji obrazów
+  12. Jaccard Index - podobieństwo między zbiorami
+** Wybór:
+   - ACC/V-measure - Accuracy jest intuicyjna i prosta w interpretacji, ale nie działa dobrze dla danych niezbalansowanych, dlatego dla datasetu REUTERS użyję V-measure
+   - AMI - działa dobrze dla danych wysokowymiarowych (MNIST, REUTERS), odporna na niezbalansowane klasy, bardziej czuła na drobne struktury niż ARI
+   - ARI - odporna na niezbalansowane klasy i działa nawet gdy liczba klastrów różni się od prawdziwych klas, często używana w benchmarkach

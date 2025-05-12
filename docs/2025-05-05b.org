@@ -1,0 +1,14 @@
+* Datasety
+  - ile klas, rekordów, jakie wyniki dla poszczególnych algorytmów, jakie dla naszego
+  - potencjalnie ograniczyć do jednego z obrazów
+  - wziąć z N2D dane z literatury, zacytować
+
+* Miary
+  - definicja miar, co oznaczają
+  - jakiś przykład, żeby było wiadomo że wiem o co chodzi
+  - wzór matematyczny!!
+
+* Co na za dwa tygodnie
+  - uruchomić w Rust, Python
+  - wstęp do pracy
+  - zacząć implementację

@@ -1,5 +1,8 @@
 #+AUTHOR: Piotr Jabłoński
 #+DATE: 25 kwietnia 2025
+#+LANGUAGE: Polish
+#+LATEX_HEADER: \usepackage[a4paper, margin=.8in]{geometry}
+#+LATEX_HEADER: \hypersetup{colorlinks=true,linkcolor=black}
 
 * Algorytmy
   - Zdefiniować baseline od każdego z algorytmów, (taki-taki alg. z takiej biblioteki w takiej wersji) w formie tabelki

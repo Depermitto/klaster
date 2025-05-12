@@ -1,0 +1,25 @@
+_default:
+	just -l
+
+python_cpu:
+	python -m cProfile cpu.py
+
+python_mem:
+	python -m memray run -f -o memory_raport.bin mem.py
+	python -m memray flamegraph -f -o memory_raport.html memory_raport.bin
+	xdg-open memory_raport.html
+
+python_mem_live:
+	python -m memray run --live mem.py
+
+rust_cpu:
+	rustc -g -o cpu cpu.rs
+	perf record --call-graph dwarf ./cpu
+	perf report
+
+rust_mem:
+	rustc -g -o mem mem.rs
+	heaptrack ./mem
+
+clean:
+	rm -f memory_raport.{bin,html} cpu mem perf.* heaptrack.mem.*

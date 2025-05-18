@@ -4,3 +4,11 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+approx = "0.4"
+hdbscan = "0.10.0"
+linfa = "0.7.1"
+linfa-clustering = "0.7.1"
+linfa-datasets = { version = "0.7.1", features = ["generate"] }
+ndarray = "0.15"
+ndarray-rand = "0.14"
+

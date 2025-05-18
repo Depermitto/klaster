@@ -6,7 +6,7 @@
   - architektura
   - diagram komunikacji / diagram stanów, zależnie od potrzeby
 * Pseudokod w LaTeXie, paczki algpseudocode lub algorithms
-* TODO Profiler / sprawdzenie wydajności biblioteki
+* DONE Profiler / sprawdzenie wydajności biblioteki
   - najlepiej żeby działało na Rust i Python
   - projekt czarna skrzynka, sprawdzamy ile czasu zajmuje wykonanie, ilość alokacji itd...
 * Analiza kodu statycznego

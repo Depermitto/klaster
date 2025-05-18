@@ -1,7 +1,7 @@
 * Datasety
   - ile klas, rekordów, jakie wyniki dla poszczególnych algorytmów, jakie dla naszego
   - potencjalnie ograniczyć do jednego z obrazów
-  - wziąć z N2D dane z literatury, zacytować
+  - wziąć z N2D tabelki a danymi o innych algorytmach, zacytować
 
 * Miary
   - definicja miar, co oznaczają

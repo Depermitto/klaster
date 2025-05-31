@@ -9,6 +9,7 @@ hdbscan = "0.10.0"
 linfa = "0.7.1"
 linfa-clustering = "0.7.1"
 linfa-datasets = { version = "0.7.1", features = ["generate"] }
+linfa-preprocessing = "0.7.1"
+mnist = "0.6.0"
 ndarray = "0.15"
 ndarray-rand = "0.14"
-

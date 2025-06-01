@@ -7,15 +7,16 @@ use linfa_clustering::KMeans;
 use linfa_preprocessing::linear_scaling::LinearScaler;
 use ndarray::s;
 use ndarray_rand::rand::thread_rng;
-use std::fs::File;
 
-use klaster::metrics::*;
+use klaster::{metrics::benefit_of_doubt_acc, research::benchmark_runtime};
 
 const NCLUSTERS: usize = 2;
+const RUNS: usize = 200;
 
 fn main() {
     // Load file into dataset
-    let file = File::open("/mnt/barracuda/Datasets/bcw.csv").expect("Breast cancer file not found");
+    let file = std::fs::File::open("/mnt/barracuda/Datasets/bcw.csv")
+        .expect("Breast cancer file not found");
     let dataset = linfa_datasets::array_from_csv(file, true, b',').expect("Bad csv file read");
 
     let targets = dataset.column(1).to_owned();
@@ -38,7 +39,10 @@ fn main() {
 
         vec![benefit_of_doubt_acc(&y_true, &y_pred)]
     };
-    println!("KMeans: {:?}", benchmark(kmeans_fit_predict_measure, 50));
+    println!(
+        "KMeans {}",
+        benchmark_runtime(kmeans_fit_predict_measure, RUNS)
+    );
 
     let data: Vec<Vec<f64>> = dataset
         .records()
@@ -51,5 +55,8 @@ fn main() {
 
         vec![benefit_of_doubt_acc(&y_true, &y_pred)]
     };
-    println!("HDBSCAN: {:?}", benchmark(hdbscan_fit_predict_measure, 50));
+    println!(
+        "HDBSCAN {}",
+        benchmark_runtime(hdbscan_fit_predict_measure, RUNS)
+    );
 }

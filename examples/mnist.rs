@@ -61,9 +61,4 @@ fn main() {
     // HDBSCAN: Judgement day
     let hdbscan_acc = benefit_of_doubt_acc(&y_true, &y_pred);
     println!("HDBSCAN: {}", hdbscan_acc);
-
-    // let mut rng = thread_rng();
-    // let expected_centroids = array![[0., 1.], [-10., 20.], [-1., 10.]];
-    // let data = generate::blobs(100, &expected_centroids, &mut rng);
-    // let n_clusters = expected_centroids.len_of(Axis(0));
 }

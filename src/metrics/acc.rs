@@ -3,8 +3,8 @@ use std::hash::Hash;
 
 pub fn benefit_of_doubt_acc<T, U>(y_true: &[T], y_pred: &[U]) -> f64
 where
-    T: Eq + Ord + Hash + Copy,
-    U: Eq + Ord + Hash + Copy,
+    T: Eq + PartialOrd + Hash + Copy,
+    U: Eq + PartialOrd + Hash + Copy,
 {
     let mut label_mapping = HashMap::new();
     for &cluster in y_pred.iter() {

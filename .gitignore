@@ -1,6 +1,5 @@
 .dev
-tutorial/site
 
 **/target
 **/.venv
-journal/generate-docs-from-code/site
+data

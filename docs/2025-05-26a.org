@@ -1,0 +1,60 @@
+* Spotkanie z zespołem Darts
+  SCHEDULED: <2025-05-30 pią 10:00> Sala 136
+  - Uważnie słuchać, porównać ich rozwiązania z naszymi (wiki)
+
+** Potok
+   Zaawansowane potoki wymagają długotrwałego opracowania (>1 rok).
+
+** MLOps (DevOps + ML)
+   Model jest testowany na innym komputerze niż na tym, na którym był trenowany. Cały proces postawiony na Microsoft Azure.
+
+** Narzędzia
+*** Jira
+    - agile (sprinty) / scrum
+    - tworzenie zadań
+      - zadania mają relację między sobą
+      - etykiety do filtrowania/kategoryzacji zadań
+    - przypisanie programistów do zadań (oceniają reviewers)
+    - historia zmian
+    - szacowanie czasu implementacji
+    - raporty i analiza
+    - kanbany (new/in review/done
+    - workflow:
+      1. To Do
+      2. In Progress
+      3. Code Review / Peer Review
+      4. Testing / QA
+      5. Done / Closed
+      6. Blocked / On Hold
+      7. Rejected / Won't Do
+
+*** VSCode i PyCharm
+    - autocomplete, lsp, itd...
+    - łatwa zdalna (ssh) praca
+    - pylint, black, isort, mypy
+
+*** Sphinx Needs
+    - generowanie dokumentacji z kodu
+    - code-as-docs
+
+*** Docker
+    - obrazy tworzą z dockerfile (duh)
+    - analizowanie obrazu narzędziem [[https://github.com/wagoodman/dive][dive]]
+    - istnieją narzędzia do statycznej analizy dockerfile
+    - Apache Airflow do programistycznego tworzenia, planowania i monitorowania przepływów pracy. Program do rozwiązań chmurowych. Taki UI do uruchamiania tasków napisanych w Pythonie
+
+*** Ansible
+    - silnik automatyzacji provisioning, zarządzanie konfiguracją, wdrażania aplikacji i orkiestracji
+    - używany do setupowania vm-ek
+
+*** Weights&Biases
+    - monitorowanie przebiegu treningu
+    - obliczanie metryki, strat, wartości wag
+    - do trenowania odręcznie/optuna
+
+*** Apache Superset
+    - pulpity analityczne
+    - używają do porównywania modeli
+
+** TODO Na koniec
+   Feedback, co można by dodać

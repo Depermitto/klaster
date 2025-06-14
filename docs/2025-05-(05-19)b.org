@@ -11,5 +11,5 @@
 * TODO Dostarczyć
 ** uruchomić w Rust, Python
 ** DONE napisać rozdział 1. wstęp do pracy
-** opisać algorytmy w 2.x, można zacząc 4.1, 4.2, 4.3
+** opisać algorytmy w 2.x, można zacząć 4.1, 4.2, 4.3
 ** zacząć implementację

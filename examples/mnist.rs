@@ -12,7 +12,7 @@ fn main() {
     let mnist::Mnist {
         trn_img, trn_lbl, ..
     } = mnist::MnistBuilder::new()
-        .base_path("/mnt/barracuda/Datasets/mnist")
+        .base_path("data/mnist")
         .finalize();
 
     let train_images = ndarray::Array2::from_shape_vec((60_000, 28 * 28), trn_img)

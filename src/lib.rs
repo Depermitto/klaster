@@ -1,5 +1,4 @@
 pub mod metrics;
-pub mod research;
 
 #[cfg(test)]
 mod tests {

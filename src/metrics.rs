@@ -1,4 +1,6 @@
 use ndarray::{Array1, Array2, Axis};
+use std::collections::HashMap;
+use std::hash::Hash;
 use std::{
     fmt::{Display, Formatter, Result},
     time::Duration,
@@ -51,31 +53,62 @@ impl Display for Raport {
     }
 }
 
-pub fn benchmark_runtime<F>(func: F, n: usize) -> Raport
+pub fn benchmark_runtime<F>(runs: usize, f: F) -> Raport
 where
     F: Fn() -> Vec<f64>,
 {
-    let sample = func();
+    let sample = f();
     let res_len = sample.len();
 
-    let mut timings = Array1::default(n);
-    let mut data = Array2::zeros((n, res_len));
-    for i in 0..n {
+    let mut timings = Array1::default(runs);
+    let mut data = Array2::zeros((runs, res_len));
+    for i in 0..runs {
         let start = std::time::Instant::now();
-        let res = func();
+        let res = f();
         for (j, &val) in res.iter().enumerate() {
             data[[i, j]] = val;
         }
         timings[i] = start.elapsed().as_nanos() as u64;
     }
 
-    return Raport {
-        runs: n,
+    Raport {
+        runs: runs,
         elapsed: Duration::from_nanos(timings.mean().unwrap_or(0)),
         mean: data
             .mean_axis(Axis(0))
-            .unwrap_or(Array1::default(n))
+            .unwrap_or(Array1::default(runs))
             .to_vec(),
         std: data.std_axis(Axis(0), 1.0).to_vec(),
-    };
+    }
+}
+
+pub fn benefit_of_doubt_acc<T, U>(y_true: &[T], y_pred: &[U]) -> f64
+where
+    T: Eq + PartialOrd + Hash + Copy,
+    U: Eq + PartialOrd + Hash + Copy,
+{
+    let mut label_mapping = HashMap::new();
+    for &cluster in y_pred.iter() {
+        let mut label_counts = HashMap::new();
+        for (&pred, &true_label) in y_pred.iter().zip(y_true) {
+            if pred == cluster {
+                *label_counts.entry(true_label).or_insert(0) += 1;
+            }
+        }
+        if let Some((&label, _)) = label_counts.iter().max_by_key(|(_, count)| *count) {
+            label_mapping.insert(cluster, label);
+        }
+    }
+
+    let aligned_labels: Vec<T> = y_pred
+        .iter()
+        .map(|c| *label_mapping.get(c).unwrap())
+        .collect();
+
+    let correct = y_true
+        .iter()
+        .zip(aligned_labels.iter())
+        .filter(|(a, b)| a == b)
+        .count();
+    correct as f64 / y_true.len() as f64
 }

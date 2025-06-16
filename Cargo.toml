@@ -3,13 +3,20 @@ name = "klaster"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+name = "klaster"
+crate-type = ["rlib", "cdylib"]
+
 [dependencies]
-approx = "0.4"
+ndarray = "0.15.0"
+ndarray-rand = "0.15.0"
+# pyo3 = { version = "0.25.1", features = ["extension-module"] }
+
 hdbscan = "0.10.0"
 linfa = "0.7.1"
 linfa-clustering = "0.7.1"
 linfa-datasets = { version = "0.7.1", features = ["generate"] }
 linfa-preprocessing = "0.7.1"
+
+[dev-dependencies]
 mnist = "0.6.0"
-ndarray = "0.15"
-ndarray-rand = "0.14"

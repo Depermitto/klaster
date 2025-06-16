@@ -3,3 +3,4 @@
 **/target
 **/.venv
 data
+examples/reference_impl_python/__pycache__

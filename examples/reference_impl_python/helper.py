@@ -1,33 +1,43 @@
+import json
+import os
+from datetime import datetime
 from time import perf_counter
 
 import numpy as np
 from sklearn import metrics
 from sklearn.cluster import KMeans
 
-from hdbscan import HDBSCAN
 import n2d
+from hdbscan import HDBSCAN
 
 
 def benchmark_python(X, y, algorithm, runs, **params):
+    timestamp = datetime.now().strftime("%d.%m.%Y-%H:%M:%S")
     all_results = []
     for _ in range(runs):
         start_time = perf_counter()
         if algorithm == "kmeans":
-            cluster_labels = KMeans(**params).fit_predict(X)
+            cluster_labels = KMeans(n_clusters=params["n_clusters"]).fit_predict(X)
         elif algorithm == "hdbscan":
-            cluster_labels = HDBSCAN(**params).fit_predict(X)
+            cluster_labels = HDBSCAN(
+                min_cluster_size=params["min_cluster_size"],
+                min_samples=params["min_samples"],
+            ).fit_predict(X)
         else:
             n_clusters = params["n_clusters"]
             ae = n2d.AutoEncoder(
                 X.shape[1],
                 latent_dim=n_clusters,
-                architecture=[200, 200, 500],
+                architecture=params["n2d_arch"],
             )
             manifoldGMM = n2d.UmapGMM(n_clusters)
 
             clusterer = n2d.n2d(ae, manifoldGMM)
             cluster_labels = clusterer.fit_predict(
-                X, weight_id=f"weights/{params['dataset']}-ae_weights.h5"
+                X,
+                epochs=params["n2d_epochs"],
+                verbose=params["n2d_verbose"],
+                weight_id=f"weights/{timestamp}-ae.weights.h5",
             )
 
         end_time = perf_counter()
@@ -42,12 +52,20 @@ def benchmark_python(X, y, algorithm, runs, **params):
         )
 
     mean_results = np.mean(all_results, axis=0)
-    return {
+    dict_results = {
         "time": mean_results[0],
         "accuracy": mean_results[1],
         "ARI": mean_results[2],
         "AMI": mean_results[3],
     }
+
+    os.makedirs("output", exist_ok=True)
+    filename = f"{timestamp}-{algorithm}-{params['dataset']}.json"
+    filepath = os.path.join("output", filename)
+    with open(filepath, "w") as f:
+        json.dump(dict_results, f, indent=4)
+
+    return dict_results
 
 
 def benefit_of_doubt_acc(y_true, y_pred):

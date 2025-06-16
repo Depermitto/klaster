@@ -19,10 +19,31 @@ if __name__ == "__main__":
         "--alg", type=str, choices=["kmeans", "hdbscan", "n2d"], required=True
     )
     parser.add_argument(
-        "--min_cluster_size", type=int, default=10, help="min_cluster_size for HDBSCAN"
+        "--hdbscan-min-cluster-size",
+        type=int,
+        default=10,
+        help="min_cluster_size for HDBSCAN",
     )
     parser.add_argument(
-        "--min_samples", type=int, default=5, help="min_samples for HDBSCAN"
+        "--hdbscan-min-samples", type=int, default=5, help="min_samples for HDBSCAN"
+    )
+    parser.add_argument(
+        "--n2d-epochs",
+        type=int,
+        default=1000,
+        help="Number of epochs for n2d autoencoder training",
+    )
+    parser.add_argument(
+        "--n2d-arch",
+        type=str,
+        default="500,500,2000",
+        help="Comma-separated layer sizes for n2d autoencoder architecture (e.g. '500,500,2000')",
+    )
+    parser.add_argument(
+        "--n2d-verbose",
+        action="store_true",
+        default=False,
+        help="Enable verbose output for n2d training",
     )
     parser.add_argument(
         "--dataset",
@@ -32,10 +53,10 @@ if __name__ == "__main__":
         help="Dataset to use",
     )
     parser.add_argument(
-        "--no-scaling",
+        "--scale",
         action="store_true",
         default=False,
-        help="Do not standardize the dataset by removing mean and scaling to unit variance before clustering",
+        help="Standardize the dataset by removing mean and scaling to unit variance before clustering",
     )
     parser.add_argument(
         "--blobs-samples",
@@ -89,29 +110,29 @@ if __name__ == "__main__":
         X = vectorizer.fit_transform(X)
         n_clusters = 20
 
-    if not args.no_scaling:
-        scaler = StandardScaler()
-        X = scaler.fit_transform(X)
-
     if args.alg == "kmeans":
         params = {"n_clusters": n_clusters}
     elif args.alg == "hdbscan":
         params = {
-            "min_cluster_size": args.min_cluster_size,
-            "min_samples": args.min_samples,
+            "min_cluster_size": args.hdbscan_min_cluster_size,
+            "min_samples": args.hdbscan_min_samples,
         }
     else:
         params = {
             "n_clusters": n_clusters,  # UmapGMM
-            "dataset": args.dataset,  # used for saving weights
-            # TODO
+            "n2d_epochs": args.n2d_epochs,
+            "n2d_arch": [int(x) for x in args.n2d_arch.split(",")],
+            "n2d_verbose": args.n2d_verbose,
+            "dataset": args.dataset,
         }
 
-    import warnings
+    if args.scale:
+        scaler = StandardScaler()
+        X = scaler.fit_transform(X)
 
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", category=FutureWarning)
-        result = benchmark_python(
-            X=X, y=y, algorithm=args.alg, runs=args.runs, **params
-        )
+        params["dataset"] = args.dataset + "-scaled"
+    else:
+        params["dataset"] = args.dataset
+
+    result = benchmark_python(X=X, y=y, algorithm=args.alg, runs=args.runs, **params)
     print(json.dumps(result, indent=4))

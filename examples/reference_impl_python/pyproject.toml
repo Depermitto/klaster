@@ -3,3 +3,10 @@ name = "examples"
 version = "0.1.0"
 description = "Klaster examples measure scikit-learn KMeans, HDBSCAN against klaster's implementations"
 readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "hdbscan>=0.8.40",
+    "n2d>=0.3.2",
+    "pandas>=2.3.0",
+    "scikit-learn>=1.7.0",
+]

@@ -1,70 +1,23 @@
 import argparse
 import json
-from time import perf_counter
 
 import numpy as np
-from sklearn import metrics
-from sklearn.cluster import KMeans
+from helper import benchmark_python
 from sklearn.datasets import (
-    make_blobs,
+    fetch_20newsgroups,
+    fetch_openml,
     load_breast_cancer,
     load_wine,
-    fetch_openml,
-    fetch_20newsgroups,
+    make_blobs,
 )
-from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction.text import TfidfVectorizer
-
-from hdbscan import HDBSCAN
-
-
-def benchmark_python(X, y, algorithm, runs, **params):
-    all_results = []
-    for _ in range(runs):
-        start_time = perf_counter()
-        if algorithm == "kmeans":
-            cluster_labels = KMeans(**params).fit_predict(X)
-        elif algorithm == "hdbscan":
-            cluster_labels = HDBSCAN(**params).fit_predict(X)
-        end_time = perf_counter()
-
-        all_results.append(
-            [
-                end_time - start_time,
-                benefit_of_doubt_acc(y, cluster_labels),
-                metrics.adjusted_rand_score(y, cluster_labels),
-                metrics.adjusted_mutual_info_score(y, cluster_labels),
-            ]
-        )
-
-    mean_results = np.mean(all_results, axis=0)
-    return {
-        "time": mean_results[0],
-        "accuracy": mean_results[1],
-        "ARI": mean_results[2],
-        "AMI": mean_results[3],
-    }
-
-
-def benefit_of_doubt_acc(y_true, y_pred):
-    from scipy.stats import mode
-
-    most_common_label = mode(y_true)[0]
-    label_mapping = {}
-    for cluster in np.unique(y_pred):
-        if cluster == -1:  # if treated as noise by density-based algorithms
-            label_mapping[cluster] = most_common_label
-        else:
-            true_label = mode(y_true[y_pred == cluster])[0]
-            label_mapping[cluster] = true_label
-
-    aligned_labels = np.array([label_mapping.get(pred) for pred in y_pred])
-    return metrics.accuracy_score(y_true, aligned_labels)
-
+from sklearn.preprocessing import StandardScaler
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--alg", type=str, choices=["kmeans", "hdbscan"], required=True)
+    parser.add_argument(
+        "--alg", type=str, choices=["kmeans", "hdbscan", "n2d"], required=True
+    )
     parser.add_argument(
         "--min_cluster_size", type=int, default=10, help="min_cluster_size for HDBSCAN"
     )
@@ -142,10 +95,16 @@ if __name__ == "__main__":
 
     if args.alg == "kmeans":
         params = {"n_clusters": n_clusters}
-    else:
+    elif args.alg == "hdbscan":
         params = {
             "min_cluster_size": args.min_cluster_size,
             "min_samples": args.min_samples,
+        }
+    else:
+        params = {
+            "n_clusters": n_clusters,  # UmapGMM
+            "dataset": args.dataset,  # used for saving weights
+            # TODO
         }
 
     import warnings

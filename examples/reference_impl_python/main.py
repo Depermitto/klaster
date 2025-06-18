@@ -53,7 +53,7 @@ if __name__ == "__main__":
         help="Dataset to use",
     )
     parser.add_argument(
-        "--scale",
+        "--scaled",
         action="store_true",
         default=False,
         help="Standardize the dataset by removing mean and scaling to unit variance before clustering",
@@ -96,6 +96,7 @@ if __name__ == "__main__":
         n_clusters = 2
     elif args.dataset == "wine":
         X, y = load_wine(return_X_y=True)
+        print(np.unique(y))
         n_clusters = 3
     elif args.dataset == "mnist":
         X, y = fetch_openml("mnist_784", return_X_y=True)
@@ -123,10 +124,9 @@ if __name__ == "__main__":
             "n2d_epochs": args.n2d_epochs,
             "n2d_arch": [int(x) for x in args.n2d_arch.split(",")],
             "n2d_verbose": args.n2d_verbose,
-            "dataset": args.dataset,
         }
 
-    if args.scale:
+    if args.scaled:
         scaler = StandardScaler()
         X = scaler.fit_transform(X)
 

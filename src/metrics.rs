@@ -1,4 +1,5 @@
 use ndarray::{Array1, Array2, Axis};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::{
@@ -6,15 +7,15 @@ use std::{
     time::Duration,
 };
 
-#[derive(Debug, Clone)]
-pub struct Raport {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BenchmarkRaport {
     pub elapsed: Duration,
     pub runs: usize,
     pub mean: Vec<f64>,
     pub std: Vec<f64>,
 }
 
-impl Display for Raport {
+impl Display for BenchmarkRaport {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         let col_w = 12;
 
@@ -53,7 +54,7 @@ impl Display for Raport {
     }
 }
 
-pub fn benchmark_runtime<F>(runs: usize, f: F) -> Raport
+pub fn benchmark_runtime<F>(runs: usize, f: F) -> BenchmarkRaport
 where
     F: Fn() -> Vec<f64>,
 {
@@ -71,7 +72,7 @@ where
         timings[i] = start.elapsed().as_nanos() as u64;
     }
 
-    Raport {
+    BenchmarkRaport {
         runs: runs,
         elapsed: Duration::from_nanos(timings.mean().unwrap_or(0)),
         mean: data

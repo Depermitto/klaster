@@ -53,6 +53,7 @@ def benchmark_python(X, y, algorithm, runs, **params):
 
     mean_results = np.mean(all_results, axis=0)
     dict_results = {
+        "runs": runs,
         "time": mean_results[0],
         "accuracy": mean_results[1],
         "ARI": mean_results[2],

@@ -1,7 +1,5 @@
-pub mod hdbscan;
 pub mod kmeans;
 pub mod metrics;
-pub mod n2d;
 
 #[cfg(test)]
 mod tests {

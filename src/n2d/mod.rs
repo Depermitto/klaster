@@ -1,1 +1,0 @@
-struct N2D {}

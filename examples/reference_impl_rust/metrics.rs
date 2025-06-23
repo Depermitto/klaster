@@ -19,12 +19,12 @@ impl Display for BenchmarkRaport {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         let col_w = 12;
 
-        writeln!(f, "Raport {{")?;
+        writeln!(f, "[")?;
 
         writeln!(
             f,
             "\t\x1b[1m{:<10}\x1b[0m {:>col_w$}",
-            "Elapsed:",
+            "elapsed:",
             format!("{:.3?}", self.elapsed),
             col_w = col_w
         )?;
@@ -32,24 +32,24 @@ impl Display for BenchmarkRaport {
         writeln!(
             f,
             "\t\x1b[1m{:<10}\x1b[0m {:>col_w$}",
-            "Runs:",
+            "runs:",
             self.runs,
             col_w = col_w
         )?;
 
-        write!(f, "\t\x1b[1m{:<10}\x1b[0m", "Mean:")?;
+        write!(f, "\t\x1b[1m{:<10}\x1b[0m", "mean:")?;
         for m in &self.mean {
             write!(f, " {:>col_w$.3}", m, col_w = col_w)?;
         }
         writeln!(f)?;
 
-        write!(f, "\t\x1b[1m{:<10}\x1b[0m", "Std:")?;
+        write!(f, "\t\x1b[1m{:<10}\x1b[0m", "std:")?;
         for s in &self.std {
             write!(f, " {:>col_w$.3}", s, col_w = col_w)?;
         }
         writeln!(f)?;
 
-        writeln!(f, "}}")?;
+        writeln!(f, "]")?;
         Ok(())
     }
 }

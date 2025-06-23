@@ -2,5 +2,7 @@
 
 **/target
 **/.venv
+**/__pycache__
+**/output
+
 data
-examples/reference_impl_python/__pycache__

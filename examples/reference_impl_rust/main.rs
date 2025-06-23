@@ -2,16 +2,17 @@ use std::{collections::HashSet, fs, path::Path};
 
 use clap::{Arg, Command};
 use hdbscan::{Hdbscan, HdbscanHyperParams};
-use klaster::metrics::{benchmark_runtime, benefit_of_doubt_acc};
 use linfa::{
     Dataset,
     traits::{Fit, Predict, Transformer},
 };
-use linfa_clustering::KMeans;
 use linfa_datasets::generate;
 use linfa_preprocessing::linear_scaling::LinearScaler;
+use metrics::{benchmark_runtime, benefit_of_doubt_acc};
 use ndarray::{Array2, s};
 use ndarray_rand::rand::{Rng, thread_rng};
+
+mod metrics;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = Command::new("Clustering Benchmark")
@@ -19,7 +20,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Arg::new("alg")
                 .long("alg")
                 .required(true)
-                .value_parser(["kmeans", "hdbscan", "n2d"])
+                .value_parser(["kmeans-ref", "hdbscan-ref", "n2d"])
                 .help("Algorithm to use"),
         )
         .arg(
@@ -117,6 +118,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     expected_centroids[[i, j]] = rng.gen_range(-10.0..10.0);
                 }
             }
+            println!("expected centroids:\n{}", expected_centroids);
 
             let dataset = Dataset::from(generate::blobs(
                 blobs_samples,
@@ -125,7 +127,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             ));
             let dataset = dataset.with_targets(expected_centroids);
 
-            println!("{:?}", dataset);
+            // let centroids = klaster::KMeans::new(blobs_centers)
+            //     .fit(dataset.records().view())
+            //     .centroids()
+            //     .to_owned();
+            // println!("predicted centroids:\n{}", centroids);
+
             return Ok(());
         }
         "bcw" => {
@@ -163,10 +170,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .base_path("data/mnist")
                 .finalize();
 
-            let train_images = ndarray::Array2::from_shape_vec((60_000, 28 * 28), trn_img)
+            const SUBSET: usize = 10_000;
+            let trn_img = trn_img[..SUBSET * 28 * 28].to_vec();
+            let trn_lbl = trn_lbl[..SUBSET].to_vec();
+
+            let train_images = ndarray::Array2::from_shape_vec((SUBSET, 28 * 28), trn_img)
                 .expect("MNIST bad image conversion")
                 .mapv(|x| x as f64);
-            let y_true = ndarray::Array1::from_shape_vec(60_000, trn_lbl)
+            let y_true = ndarray::Array1::from_shape_vec(SUBSET, trn_lbl)
                 .expect("MNIST bad label conversion");
             let train_labels = y_true.mapv(|x| x as usize);
             let dataset = linfa::Dataset::new(train_images, train_labels);
@@ -194,11 +205,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .ok_or("missing alg")?
         .as_str()
     {
-        "kmeans" => {
+        "kmeans-ref" => {
             let y_true = dataset.targets().to_vec();
             let kmeans_result = benchmark_runtime(runs, || {
                 let rng = thread_rng();
-                let model = KMeans::params_with_rng(n_clusters, rng.clone())
+                let model = linfa_clustering::KMeans::params_with_rng(n_clusters, rng.clone())
                     .fit(&dataset)
                     .expect("KMeans bad fit");
                 let y_pred = model.predict(&dataset).to_vec();
@@ -207,7 +218,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             });
             kmeans_result
         }
-        "hdbscan" => {
+        // "kmeans" => {
+        //     let y_true = dataset.targets().to_vec();
+        //     let kmeans_result = benchmark_runtime(runs, || {
+        //         let y_pred = klaster::KMeans::new(n_clusters)
+        //             .max_iter(30)
+        //             .fit_predict(dataset.records().view())
+        //             .to_vec();
+
+        //         vec![benefit_of_doubt_acc(&y_true, &y_pred)]
+        //     });
+        //     kmeans_result
+        // }
+        "hdbscan-ref" => {
             let min_cluster_size: usize = matches
                 .get_one::<String>("hdbscan_min_cluster_size")
                 .ok_or("missing hdbscan_min_cluster_size")?
@@ -252,6 +275,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     let filepath = output_dir.join(filename);
     fs::write(filepath, serde_json::to_string_pretty(&result)?)?;
+
+    println!("{}", result);
 
     Ok(())
 }

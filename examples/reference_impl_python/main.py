@@ -10,8 +10,6 @@ from sklearn.datasets import (
     load_wine,
     make_blobs,
 )
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.preprocessing import StandardScaler
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -104,6 +102,8 @@ if __name__ == "__main__":
         y = y[:1000].astype(int)
         n_clusters = 10
     elif args.dataset == "20-newsgroups":
+        from sklearn.feature_extraction.text import TfidfVectorizer
+
         X, y = fetch_20newsgroups(
             remove=("headers", "footers", "quotes"), return_X_y=True
         )
@@ -127,6 +127,8 @@ if __name__ == "__main__":
         }
 
     if args.scaled:
+        from sklearn.preprocessing import StandardScaler
+
         scaler = StandardScaler()
         X = scaler.fit_transform(X)
 

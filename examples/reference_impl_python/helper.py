@@ -5,10 +5,6 @@ from time import perf_counter
 
 import numpy as np
 from sklearn import metrics
-from sklearn.cluster import KMeans
-
-import n2d
-from hdbscan import HDBSCAN
 
 
 def benchmark_python(X, y, algorithm, runs, **params):
@@ -17,13 +13,19 @@ def benchmark_python(X, y, algorithm, runs, **params):
     for _ in range(runs):
         start_time = perf_counter()
         if algorithm == "kmeans":
+            from sklearn.cluster import KMeans
+
             cluster_labels = KMeans(n_clusters=params["n_clusters"]).fit_predict(X)
         elif algorithm == "hdbscan":
+            from hdbscan import HDBSCAN
+
             cluster_labels = HDBSCAN(
                 min_cluster_size=params["min_cluster_size"],
                 min_samples=params["min_samples"],
             ).fit_predict(X)
         else:
+            import n2d
+
             n_clusters = params["n_clusters"]
             ae = n2d.AutoEncoder(
                 X.shape[1],

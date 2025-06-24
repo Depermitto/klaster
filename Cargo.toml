@@ -1,7 +1,16 @@
 [package]
 name = "klaster"
-version = "0.1.0"
+version = "0.0.1-alpha1"
 edition = "2024"
+authors = ["Piotr Jabłoński"]
+description = "Machine learning library providing modern clusterning algorithms for the Rust programming language"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/Depermitto/klaster"
+homepage = "https://github.com/Depermitto/klaster"
+documentation = "https://docs.rs/klaster"
+readme = "README.md"
+keywords = ["clustering", "k-means", "machine-learning", "unsupervised"]
+exclude = [".github", ".gitmodules", ".gitignore", "examples/*", "docs/*"]
 
 [lib]
 name = "klaster"

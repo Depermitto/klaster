@@ -12,6 +12,9 @@ pub enum KMeansDist {
     /// The "ordinary" straight-line distance between two points.
     ///
     /// Formula: `d(x,y) = sqrt(sum(x - y)^2)`
+    ///
+    /// Note: For efficiency reasons, the euclidean distance is computed as `d(x,y) = sqrt(dot(x,x) - 2 * dot(x,y) + dot(y,y))`.
+    /// This formulation is computationally efficient and allows for pre-computation of one of the dot products.
     Euclidean,
 
     /// [Manhattan (L1) distance](https://en.wikipedia.org/wiki/Taxicab_geometry).
@@ -50,10 +53,18 @@ impl KMeansDist {
         D: Dimension,
     {
         match self {
-            KMeansDist::Euclidean => Zip::from(a)
-                .and(b)
-                .fold(0.0, |acc, x, y| acc + (x - y).powi(2))
-                .sqrt(),
+            KMeansDist::Euclidean => {
+                // TODO: Allow pre-computing one of the dot products
+                if let (Ok(a), Ok(b)) = (a.view().into_shape(a.len()), b.view().into_shape(b.len()))
+                {
+                    (a.dot(&a) - 2.0 * a.dot(&b) + b.dot(&b)).sqrt()
+                } else {
+                    Zip::from(a)
+                        .and(b)
+                        .fold(0.0, |acc, x, y| acc + (x - y).powi(2))
+                        .sqrt()
+                }
+            }
             KMeansDist::Manhattan => Zip::from(a)
                 .and(b)
                 .fold(0.0, |acc, x, y| acc + (x - y).abs()),

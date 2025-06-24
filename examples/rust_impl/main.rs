@@ -187,7 +187,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if matches.get_flag("scaled") {
         let scaler = LinearScaler::standard()
             .fit(&dataset)
-            .expect(format!("cannot scale {}", dataset_name).as_str());
+            .unwrap_or_else(|_| panic!("cannot scale {}", dataset_name));
         dataset_name = format!("{}-scaled", dataset_name);
         dataset = scaler.transform(dataset);
     }
@@ -203,7 +203,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     {
         "kmeans-ref" => {
             let y_true = dataset.targets().to_vec();
-            let kmeans_result = benchmark_runtime(runs, || {
+
+            benchmark_runtime(runs, || {
                 let rng = thread_rng();
                 let model = linfa_clustering::KMeans::params_with_rng(n_clusters, rng.clone())
                     .init_method(linfa_clustering::KMeansInit::Random)
@@ -212,19 +213,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let y_pred = model.predict(&dataset).to_vec();
 
                 vec![benefit_of_doubt_acc(&y_true, &y_pred)]
-            });
-            kmeans_result
+            })
         }
         "kmeans" => {
             let y_true = dataset.targets().to_vec();
-            let kmeans_result = benchmark_runtime(runs, || {
+
+            benchmark_runtime(runs, || {
                 let y_pred = klaster::KMeans::new_plusplus(n_clusters)
                     .fit_predict(dataset.records().view())
                     .to_vec();
 
                 vec![benefit_of_doubt_acc(&y_true, &y_pred)]
-            });
-            kmeans_result
+            })
         }
         "hdbscan-ref" => {
             let min_cluster_size: usize = matches
@@ -246,13 +246,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .map(|row| row.to_vec())
                 .collect();
             let y_true = dataset.targets().to_vec();
-            let hdbscan_result = benchmark_runtime(runs, || {
+
+            benchmark_runtime(runs, || {
                 let model = Hdbscan::new(&data, config.clone());
                 let y_pred: Vec<i32> = model.cluster().expect("HDBSCAN bad fit").to_vec();
 
                 vec![benefit_of_doubt_acc(&y_true, &y_pred)]
-            });
-            hdbscan_result
+            })
         }
         "hdbscan" => unimplemented!(),
         "n2d-ref" => panic!("no 3rd party implementation available"),

@@ -76,7 +76,7 @@ where
     }
 
     BenchmarkRaport {
-        runs: runs,
+        runs,
         elapsed: Duration::from_nanos(timings.mean().unwrap_or(0)),
         mean: data
             .mean_axis(Axis(0))

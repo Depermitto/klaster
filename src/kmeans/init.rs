@@ -12,8 +12,8 @@ use crate::{KMeansDist, kmeans::closest_centroid};
 ///
 /// - `Forgy`: Randomly selects `k` data points as initial centroids.
 /// - `PlusPlus`: Uses the KMeans++ algorithm to choose initial centroids, spreading them out
-/// by selecting each new centroid with probability proportional to its squared distance
-/// from the nearest existing centroid.
+///   by selecting each new centroid with probability proportional to its squared distance
+///   from the nearest existing centroid.
 #[derive(Clone, Copy)]
 pub enum KMeansInit {
     Forgy,

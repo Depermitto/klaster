@@ -1,3 +1,6 @@
+# Copyright (C) 2025 Piotr Jabłoński
+# Extended copyright information can be found in the LICENSE file.
+
 import json
 import os
 from datetime import datetime

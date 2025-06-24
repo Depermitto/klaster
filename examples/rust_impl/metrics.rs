@@ -1,3 +1,6 @@
+// Copyright (C) 2025 Piotr Jabłoński
+// Extended copyright information can be found in the LICENSE file.
+
 use ndarray::{Array1, Array2, Axis};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

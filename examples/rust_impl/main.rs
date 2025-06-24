@@ -1,3 +1,6 @@
+// Copyright (C) 2025 Piotr Jabłoński
+// Extended copyright information can be found in the LICENSE file.
+
 use std::{collections::HashSet, fs, path::Path};
 
 use clap::{Arg, Command};
@@ -20,7 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Arg::new("alg")
                 .long("alg")
                 .required(true)
-                .value_parser(["kmeans-ref", "hdbscan-ref", "n2d"])
+                .value_parser(["kmeans-ref", "kmeans", "hdbscan-ref", "hdbscan", "n2d"])
                 .help("Algorithm to use"),
         )
         .arg(
@@ -126,14 +129,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 &mut rng,
             ));
             let dataset = dataset.with_targets(expected_centroids);
-
-            // let centroids = klaster::KMeans::new(blobs_centers)
-            //     .fit(dataset.records().view())
-            //     .centroids()
-            //     .to_owned();
-            // println!("predicted centroids:\n{}", centroids);
-
-            return Ok(());
+            todo!("do something with {:?}", dataset);
         }
         "bcw" => {
             let file = std::fs::File::open("data/bcw.csv").expect("BCW dataset not found");
@@ -170,7 +166,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .base_path("data/mnist")
                 .finalize();
 
-            const SUBSET: usize = 10_000;
+            const SUBSET: usize = 1_000;
             let trn_img = trn_img[..SUBSET * 28 * 28].to_vec();
             let trn_lbl = trn_lbl[..SUBSET].to_vec();
 
@@ -210,6 +206,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let kmeans_result = benchmark_runtime(runs, || {
                 let rng = thread_rng();
                 let model = linfa_clustering::KMeans::params_with_rng(n_clusters, rng.clone())
+                    .init_method(linfa_clustering::KMeansInit::Random)
                     .fit(&dataset)
                     .expect("KMeans bad fit");
                 let y_pred = model.predict(&dataset).to_vec();
@@ -218,18 +215,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             });
             kmeans_result
         }
-        // "kmeans" => {
-        //     let y_true = dataset.targets().to_vec();
-        //     let kmeans_result = benchmark_runtime(runs, || {
-        //         let y_pred = klaster::KMeans::new(n_clusters)
-        //             .max_iter(30)
-        //             .fit_predict(dataset.records().view())
-        //             .to_vec();
+        "kmeans" => {
+            let y_true = dataset.targets().to_vec();
+            let kmeans_result = benchmark_runtime(runs, || {
+                let y_pred = klaster::KMeans::new_plusplus(n_clusters)
+                    .fit_predict(dataset.records().view())
+                    .to_vec();
 
-        //         vec![benefit_of_doubt_acc(&y_true, &y_pred)]
-        //     });
-        //     kmeans_result
-        // }
+                vec![benefit_of_doubt_acc(&y_true, &y_pred)]
+            });
+            kmeans_result
+        }
         "hdbscan-ref" => {
             let min_cluster_size: usize = matches
                 .get_one::<String>("hdbscan_min_cluster_size")
@@ -258,7 +254,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             });
             hdbscan_result
         }
-        "n2d" => panic!("no 3rd party implementation available"),
+        "hdbscan" => unimplemented!(),
+        "n2d-ref" => panic!("no 3rd party implementation available"),
+        "n2d" => unimplemented!(),
         _ => return Err("unknown algorithm".into()),
     };
 

@@ -8,20 +8,23 @@ name = "klaster"
 crate-type = ["rlib", "cdylib"]
 
 [dependencies]
-ndarray = "0.15.0"
+ndarray = "0.15.6"
 ndarray-rand = "0.15.0"
 # pyo3 = { version = "0.25.1", features = ["extension-module"] }
 
 [dev-dependencies]
-chrono = "0.4.41"
-clap = "4.5.40"
-serde = { version = "1.0.219", features = ["derive"] }
-serde_json = "1.0.140"
-
-hdbscan = "0.10.0"
+# Datasets and preprocessing
 linfa-clustering = "0.7.1"
-
-mnist = "0.6.0"
-linfa = "0.7.1"
 linfa-datasets = { version = "0.7.1", features = ["generate"] }
 linfa-preprocessing = "0.7.1"
+mnist = "0.6.0"
+
+# Clustering algorithms
+linfa = "0.7.1"
+hdbscan = "0.10.0"
+
+# Utils
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+chrono = "0.4.41"
+clap = "4.5.40"

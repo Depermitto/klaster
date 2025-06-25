@@ -3,7 +3,7 @@
 
 //! Euclidean distance and functions used for optimizing distance measuring
 
-use ndarray::{Array1, ArrayView, ArrayView1, ArrayView2, Dimension, Zip};
+use ndarray::{ArrayView, ArrayView1, Dimension, Zip};
 
 // pub fn euclidean_sq<D>(a: ArrayView<f64, D>, b: ArrayView<f64, D>) -> f64
 // where
@@ -37,10 +37,6 @@ pub fn euclidean_sq_rprecomputed(a: ArrayView1<f64>, b: ArrayView1<f64>, bb_dot:
 #[inline]
 fn fast_euclidean_sq(aa_dot: f64, ab_dot: f64, bb_dot: f64) -> f64 {
     aa_dot - 2.0 * ab_dot + bb_dot
-}
-
-pub fn precompute_dot_products(array: ArrayView2<f64>) -> Array1<f64> {
-    array.outer_iter().map(|point| point.dot(&point)).collect()
 }
 
 #[inline]

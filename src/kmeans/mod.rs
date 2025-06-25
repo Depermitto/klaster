@@ -83,16 +83,15 @@ impl KMeans {
 
         let mut centroids = self.init_fn.run(self.k_clusters, data, &mut rng);
         let mut memberships = Array1::zeros(data.nrows());
-        let dot_cache = dist::precompute_dot_products(data);
 
         for _ in 0..self.max_iter {
             // Assignment step
-            assign_clusters(data, dot_cache.view(), centroids.view(), &mut memberships);
+            assign_clusters(data, centroids.view(), &mut memberships);
 
             // Calculate new centroids (mean of all points assigned to each cluster)
             let new_centroids = {
-                let mut counts = Array1::<f64>::zeros(self.k_clusters);
                 let mut new_centroids = Array2::<f64>::zeros((self.k_clusters, data.ncols()));
+                let mut counts = Array1::<f64>::zeros(self.k_clusters);
 
                 for (point, &membership) in data.outer_iter().zip(&memberships) {
                     let mut centroid = new_centroids.row_mut(membership);
@@ -147,50 +146,35 @@ impl KMeansFitted {
     /// Note: `data` and `memberships` must agree on the length of their first dimension ([`ndarray::Axis(0)`](ndarray::Axis))
     pub fn predict_inplace(&self, data: ArrayView2<f64>, memberships: &mut Array1<usize>) {
         assert_eq!(data.nrows(), memberships.len());
-        assign_clusters(
-            data,
-            dist::precompute_dot_products(data).view(),
-            self.centroids(),
-            memberships,
-        );
+        assign_clusters(data, self.centroids(), memberships);
     }
 
     /// Assign clusters to the input data and return the assignments.
     pub fn predict(&self, data: ArrayView2<f64>) -> Array1<usize> {
         let mut memberships = Array1::zeros(data.nrows());
-        assign_clusters(
-            data,
-            dist::precompute_dot_products(data).view(),
-            self.centroids(),
-            &mut memberships,
-        );
+        assign_clusters(data, self.centroids(), &mut memberships);
         memberships
     }
 }
 
 fn assign_clusters(
     data: ArrayView2<f64>,
-    dot_cache: ArrayView1<f64>,
     centroids: ArrayView2<f64>,
     memberships: &mut Array1<usize>,
 ) {
     Zip::from(data.outer_iter())
-        .and(dot_cache)
         .and(memberships)
-        .par_for_each(|point, point_dot, membership| {
-            let (cluster_assignment, _) = closest_centroid(point, *point_dot, centroids);
+        .for_each(|point, membership| {
+            let (cluster_assignment, _) = closest_centroid(point, centroids);
             *membership = cluster_assignment;
         });
 }
 
-fn closest_centroid(
-    point: ArrayView1<f64>,
-    point_dot: f64,
-    centroids: ArrayView2<f64>,
-) -> (usize, f64) {
+fn closest_centroid(point: ArrayView1<f64>, centroids: ArrayView2<f64>) -> (usize, f64) {
     if point.is_empty() || centroids.is_empty() {
         unreachable!()
     }
+    let point_dot = point.dot(&point);
 
     let mut cluster_assignment = 0;
     let mut min_dist = f64::INFINITY;

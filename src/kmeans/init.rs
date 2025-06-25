@@ -6,7 +6,7 @@
 use ndarray::{Array1, Array2, ArrayView2, Axis, Zip, s};
 use rand::distr::Distribution;
 
-use crate::kmeans::{closest_centroid, dist};
+use crate::kmeans::closest_centroid;
 
 /// Initialization methods for KMeans clustering.
 ///
@@ -38,7 +38,6 @@ impl KMeansInit {
                 let (samples, features) = data.dim();
                 let mut centroids = Array2::<f64>::zeros((k_clusters, features));
                 let mut weights = Array1::<f64>::zeros(samples);
-                let dot_cache = dist::precompute_dot_products(data);
 
                 // Choose the first centroid at random among all the data points
                 centroids
@@ -50,14 +49,10 @@ impl KMeansInit {
                     // The probability of selecting a point as the next centroid is proportional to the
                     // square distance of the closest centroids
                     Zip::from(data.outer_iter())
-                        .and(&dot_cache)
                         .and(&mut weights)
-                        .par_for_each(|point, point_dot, weight| {
-                            let (_, min_dist) = closest_centroid(
-                                point,
-                                *point_dot,
-                                centroids.slice(s![0..c_idx, ..]),
-                            );
+                        .for_each(|point, weight| {
+                            let (_, min_dist) =
+                                closest_centroid(point, centroids.slice(s![0..c_idx, ..]));
                             *weight = min_dist;
                         });
 

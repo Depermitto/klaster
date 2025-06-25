@@ -20,34 +20,8 @@ use ndarray::{ArrayView, ArrayView1, Dimension, Zip};
 // }
 
 #[inline]
-pub fn euclidean_sq(a: ArrayView1<f64>, b: ArrayView1<f64>) -> f64 {
-    fast_euclidean_sq(a.dot(&a), a.dot(&b), b.dot(&b))
-}
-
-#[inline]
-pub fn euclidean_sq_lprecomputed(a: ArrayView1<f64>, aa_dot: f64, b: ArrayView1<f64>) -> f64 {
-    fast_euclidean_sq(aa_dot, a.dot(&b), b.dot(&b))
-}
-
-#[inline]
-pub fn euclidean_sq_rprecomputed(a: ArrayView1<f64>, b: ArrayView1<f64>, bb_dot: f64) -> f64 {
-    fast_euclidean_sq(a.dot(&a), a.dot(&b), bb_dot)
-}
-
-#[inline]
-fn fast_euclidean_sq(aa_dot: f64, ab_dot: f64, bb_dot: f64) -> f64 {
-    aa_dot - 2.0 * ab_dot + bb_dot
-}
-
-#[inline]
-pub fn dotnd<D>(array: ArrayView<f64, D>) -> f64
-where
-    D: Dimension,
-{
-    array
-        .to_shape(array.len())
-        .map(|flat| flat.dot(&flat))
-        .unwrap_or(f64::NAN)
+pub fn euclidean_sq_precomputed(a: ArrayView1<f64>, aa_dot: f64, b: ArrayView1<f64>) -> f64 {
+    aa_dot - 2.0 * a.dot(&b) + b.dot(&b)
 }
 
 #[inline]
@@ -55,7 +29,14 @@ pub fn naive_euclidean_sq<D>(a: ArrayView<f64, D>, b: ArrayView<f64, D>) -> f64
 where
     D: Dimension,
 {
-    Zip::from(a)
-        .and(b)
-        .fold(0.0, |acc, x, y| acc + (x - y).powi(2))
+    assert_eq!(a.dim(), b.dim());
+    let a_flat = a.to_shape(a.len());
+    let b_flat = b.to_shape(b.len());
+    if let (Ok(a), Ok(b)) = (a_flat, b_flat) {
+        euclidean_sq_precomputed(a.view(), a.dot(&a), b.view())
+    } else {
+        Zip::from(a)
+            .and(b)
+            .fold(0.0, |acc, x, y| acc + (x - y).powi(2))
+    }
 }

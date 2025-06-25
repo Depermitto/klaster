@@ -179,7 +179,7 @@ fn closest_centroid(point: ArrayView1<f64>, centroids: ArrayView2<f64>) -> (usiz
     let mut cluster_assignment = 0;
     let mut min_dist = f64::INFINITY;
     for (c_idx, centroid) in centroids.outer_iter().enumerate() {
-        let dist = dist::euclidean_sq_lprecomputed(point, point_dot, centroid);
+        let dist = dist::euclidean_sq_precomputed(point, point_dot, centroid);
         if dist < min_dist {
             min_dist = dist;
             cluster_assignment = c_idx;

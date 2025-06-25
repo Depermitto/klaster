@@ -9,10 +9,9 @@
 pub mod dist;
 pub mod init;
 
-use ndarray::{Array1, Array2, ArrayView1, ArrayView2};
-use ndarray_rand::rand;
+use ndarray::{Array1, Array2, ArrayView1, ArrayView2, Zip};
 
-pub use crate::kmeans::{dist::KMeansDist, init::KMeansInit};
+pub use crate::kmeans::init::KMeansInit;
 
 /// K-Means clustering model.
 ///
@@ -28,19 +27,6 @@ pub use crate::kmeans::{dist::KMeansDist, init::KMeansInit};
 /// - `init_fn`: Cluster center initialization strategy,
 /// - `dist_fn`: Distance metric for assignment and convergence.
 ///
-/// # Examples
-/// ```
-/// use crate::klaster::{KMeans, KMeansDist};
-///
-/// let model = KMeans::new_random(10)
-///     .with_tolerance(1e-2)
-///     .with_max_iter(50)
-///     .with_dist_metric(KMeansDist::Minkowski(1.5));
-///
-/// // Now that we have the model, use `model.fit` or `model.fit_predict` to
-/// // train it and predict centroids/clusters
-/// ```
-///
 /// # Panics
 /// Panic can occur during initialization if:
 /// - `k_clusters` is 0
@@ -51,7 +37,6 @@ pub struct KMeans {
     max_iter: usize,
     tolerance: f64,
     init_fn: KMeansInit,
-    dist_fn: KMeansDist,
 }
 
 impl KMeans {
@@ -61,7 +46,6 @@ impl KMeans {
         Self {
             k_clusters,
             init_fn: KMeansInit::Forgy,
-            dist_fn: KMeansDist::Euclidean,
             tolerance: 1e-4,
             max_iter: 300,
         }
@@ -74,12 +58,6 @@ impl KMeans {
             init_fn: KMeansInit::PlusPlus,
             ..Self::new_random(k_clusters)
         }
-    }
-
-    /// Set the distance metric for the KMeans model.
-    pub fn with_dist_metric(mut self, dist_metric: KMeansDist) -> Self {
-        self.dist_fn = dist_metric;
-        self
     }
 
     /// Set the convergence tolerance for the KMeans model.
@@ -101,16 +79,15 @@ impl KMeans {
     /// # Panics
     /// May occur if input `data` contains invalid values.
     pub fn fit(&self, data: ArrayView2<f64>) -> KMeansFitted {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
-        let mut centroids = self
-            .init_fn
-            .run(self.k_clusters, data, &mut rng, self.dist_fn);
+        let mut centroids = self.init_fn.run(self.k_clusters, data, &mut rng);
         let mut memberships = Array1::zeros(data.nrows());
+        let dot_cache = dist::precompute_dot_products(data);
 
         for _ in 0..self.max_iter {
             // Assignment step
-            assign_clusters(data, centroids.view(), &mut memberships, self.dist_fn);
+            assign_clusters(data, dot_cache.view(), centroids.view(), &mut memberships);
 
             // Calculate new centroids (mean of all points assigned to each cluster)
             let new_centroids = {
@@ -132,17 +109,14 @@ impl KMeans {
             };
 
             // Convergence check
-            let distance = self.dist_fn.run(centroids.view(), new_centroids.view());
+            let distance = dist::naive_euclidean_sq(centroids.view(), new_centroids.view());
             centroids = new_centroids;
             if distance < self.tolerance {
                 break;
             }
         }
 
-        KMeansFitted {
-            centroids,
-            dist_method: self.dist_fn,
-        }
+        KMeansFitted { centroids }
     }
 
     /// Fit the KMeans model and return cluster assignments for each sample. This is equivalent to writing
@@ -160,7 +134,6 @@ impl KMeans {
 /// Note: Use the [`centroids`](KMeansFitted::centroids) method to lookup final cluster centroids.
 pub struct KMeansFitted {
     centroids: Array2<f64>,
-    dist_method: KMeansDist,
 }
 
 impl KMeansFitted {
@@ -174,41 +147,55 @@ impl KMeansFitted {
     /// Note: `data` and `memberships` must agree on the length of their first dimension ([`ndarray::Axis(0)`](ndarray::Axis))
     pub fn predict_inplace(&self, data: ArrayView2<f64>, memberships: &mut Array1<usize>) {
         assert_eq!(data.nrows(), memberships.len());
-        assign_clusters(data, self.centroids(), memberships, self.dist_method);
+        assign_clusters(
+            data,
+            dist::precompute_dot_products(data).view(),
+            self.centroids(),
+            memberships,
+        );
     }
 
     /// Assign clusters to the input data and return the assignments.
     pub fn predict(&self, data: ArrayView2<f64>) -> Array1<usize> {
         let mut memberships = Array1::zeros(data.nrows());
-        assign_clusters(data, self.centroids(), &mut memberships, self.dist_method);
+        assign_clusters(
+            data,
+            dist::precompute_dot_products(data).view(),
+            self.centroids(),
+            &mut memberships,
+        );
         memberships
     }
 }
 
 fn assign_clusters(
     data: ArrayView2<f64>,
+    dot_cache: ArrayView1<f64>,
     centroids: ArrayView2<f64>,
     memberships: &mut Array1<usize>,
-    dist_fn: KMeansDist,
 ) {
-    for (point, membership) in data.outer_iter().zip(memberships) {
-        let (cluster_assignment, _) = closest_centroid(point, centroids, dist_fn);
-        *membership = cluster_assignment;
-    }
+    Zip::from(data.outer_iter())
+        .and(dot_cache)
+        .and(memberships)
+        .par_for_each(|point, point_dot, membership| {
+            let (cluster_assignment, _) = closest_centroid(point, *point_dot, centroids);
+            *membership = cluster_assignment;
+        });
 }
 
 fn closest_centroid(
     point: ArrayView1<f64>,
+    point_dot: f64,
     centroids: ArrayView2<f64>,
-    dist_fn: KMeansDist,
 ) -> (usize, f64) {
     if point.is_empty() || centroids.is_empty() {
         unreachable!()
     }
+
     let mut cluster_assignment = 0;
     let mut min_dist = f64::INFINITY;
     for (c_idx, centroid) in centroids.outer_iter().enumerate() {
-        let dist = dist_fn.run(point, centroid);
+        let dist = dist::euclidean_sq_lprecomputed(point, point_dot, centroid);
         if dist < min_dist {
             min_dist = dist;
             cluster_assignment = c_idx;

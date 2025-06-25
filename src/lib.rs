@@ -3,4 +3,4 @@
 
 pub mod kmeans;
 
-pub use kmeans::{KMeans, KMeansDist, KMeansInit};
+pub use kmeans::{KMeans, KMeansInit};

@@ -18,10 +18,12 @@ crate-type = ["rlib", "cdylib"]
 
 [dependencies]
 ndarray = "0.15.6"
-ndarray-rand = "0.15.0"
+rand = "0.9.1"
 # pyo3 = { version = "0.25.1", features = ["extension-module"] }
 
 [dev-dependencies]
+ndarray-rand = "0.15.0"
+
 # Datasets and preprocessing
 linfa-clustering = "0.7.1"
 linfa-datasets = { version = "0.7.1", features = ["generate"] }

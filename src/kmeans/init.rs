@@ -3,10 +3,10 @@
 
 //! Centroid initialization strategies for KMeans clustering.
 
-use ndarray::{Array1, Array2, ArrayView2, Axis, s};
-use ndarray_rand::{rand, rand_distr::Distribution};
+use ndarray::{Array1, Array2, ArrayView2, Axis, Zip, s};
+use rand::distr::Distribution;
 
-use crate::{KMeansDist, kmeans::closest_centroid};
+use crate::kmeans::{closest_centroid, dist};
 
 /// Initialization methods for KMeans clustering.
 ///
@@ -27,7 +27,6 @@ impl KMeansInit {
         k_clusters: usize,
         data: ArrayView2<f64>,
         rng: &mut impl rand::Rng,
-        dist_fn: KMeansDist,
     ) -> Array2<f64> {
         match self {
             KMeansInit::Forgy => {
@@ -39,23 +38,30 @@ impl KMeansInit {
                 let (samples, features) = data.dim();
                 let mut centroids = Array2::<f64>::zeros((k_clusters, features));
                 let mut weights = Array1::<f64>::zeros(samples);
+                let dot_cache = dist::precompute_dot_products(data);
 
                 // Choose the first centroid at random among all the data points
                 centroids
                     .row_mut(0)
-                    .assign(&data.row(rng.gen_range(0..samples)));
+                    .assign(&data.row(rng.random_range(0..samples)));
 
                 for c_idx in 1..k_clusters {
                     // For each data point, compute the distance to its nearest already-chosen centroid.
                     // The probability of selecting a point as the next centroid is proportional to the
                     // square distance of the closest centroids
-                    for (point, weight) in data.outer_iter().zip(&mut weights) {
-                        let (_, min_dist) =
-                            closest_centroid(point, centroids.slice(s![0..c_idx, ..]), dist_fn);
-                        *weight = min_dist.powi(2);
-                    }
+                    Zip::from(data.outer_iter())
+                        .and(&dot_cache)
+                        .and(&mut weights)
+                        .par_for_each(|point, point_dot, weight| {
+                            let (_, min_dist) = closest_centroid(
+                                point,
+                                *point_dot,
+                                centroids.slice(s![0..c_idx, ..]),
+                            );
+                            *weight = min_dist;
+                        });
 
-                    let p_idx = rand::distributions::WeightedIndex::new(weights.iter())
+                    let p_idx = rand::distr::weighted::WeightedIndex::new(weights.iter())
                         .map(|w_idx| w_idx.sample(rng))
                         .unwrap_or(0);
                     centroids.row_mut(c_idx).assign(&data.row(p_idx));

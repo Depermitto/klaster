@@ -1,0 +1,94 @@
+#+TITLE: Opracowanie nowoczesnych podejść do metod głębokiego uczenia
+#+AUTHOR: Piotr Jabłoński 325163
+#+DATE: 5 lipca 2025
+#+LANGUAGE: Polish
+#+OPTIONS: toc:nil
+#+LATEX_HEADER: \usepackage[a4paper, margin=.7in]{geometry}
+#+LATEX_HEADER: \hypersetup{colorlinks=true,linkcolor=black}
+
+* Moduł Uczenia Reprezentacji
+
+  Skupia się na różnych podejściach do przekształcania surowych danych w niskowymiarowe reprezentacje, które ułatwiają efektywne grupowanie. Można wyróżnić kilka kluczowych metod:
+
+  1. *Autoenkodery*: Prosta i efektywna metoda, która uczy się reprezentacji poprzez rekonstrukcję danych wejściowych. Choć łatwa w implementacji, może ignorować relacje między instancjami, co ogranicza jej skuteczność w klastrowaniu.
+
+  2. *Generatywne uczenie reprezentacji*: Metody takie jak VAE (Variational Autoencoder) wykorzystują modele generatywne do wnioskowania o rozkładzie danych. Są elastyczne i pozwalają na generowanie nowych danych, ale wymagają założeń dotyczących rozkładu danych.
+
+  3. *Maksymalizacja informacji wzajemnej*: Mierzy zależność między zmiennymi, np. między różnymi warstwami sieci neuronowych. Pozwala na uczenie spójnych reprezentacji, ale może nie uwzględniać relacji między instancjami w sposób jawny.
+
+  4. *Uczenie kontrastywne*: Polega na przyciąganiu podobnych instancji i odpychaniu różnych, co sprzyja tworzeniu dyskryminacyjnych reprezentacji. Metoda ta jest szczególnie skuteczna w zadaniach klastrowania dzięki właściwościom wyrównania i jednorodności.
+
+  5. *Reprezentacje przyjazne klastrowaniu*: Specjalnie zaprojektowane do wspierania konkretnych metod klastrowania, np. K-means lub spektralnego. Choć skuteczne, mogą być mało uniwersalne.
+
+  6. *Uczenie reprezentacji w podprzestrzeniach*: Wykorzystuje założenie samowyrażalności danych, ale może być kosztowne obliczeniowo dla dużych zbiorów danych.
+
+  Bardzo istotne jest dostosowanie metod uczenia reprezentacji do konkretnych typów danych, takich jak obrazy, tekst, wideo czy grafy, oraz wskazują na wyzwania, takie jak efektywne modelowanie relacji między instancjami i zapewnienie skalowalności.
+
+* Moduł Klastrowania
+
+  Zadaniem tego modułu jest przekształcanie niskowymiarowych reprezentacji danych w przypisania do klastrów. W przeciwieństwie do płytkich metod klastrowania, podejścia głębokie wykorzystują sieci neuronowe, aby generować miękkie przypisania probabilistyczne, unikając problemów związanych z optymalizacją dyskretnych etykiet. Autorzy omawiają kilka kluczowych metod:
+
+  1. *Relation Matching*: Porównuje podobieństwa między instancjami w przestrzeni osadzeń i przestrzeni etykiet, aby zachować spójność semantyczną. Choć intuicyjne, wymaga obliczeń dla wszystkich par instancji, co może być kosztowne.
+
+  2. *Pseudo Labeling*: Wykorzystuje przypisania klastrów o wysokiej pewności jako nadzór, stosując podejścia instancyjne (np. entropia) lub relacyjne (np. must-link/cannot-link). Jakość pseudoznaczników zależy jednak od wstępnej wydajności modelu.
+
+  3. *Self-training*: Optymalizuje rozkład przypisań klastrów poprzez minimalizację dywergencji Kullbacka-Leiblera względem rozkładu pomocniczego. Zapobiega degeneracji rozwiązań (np. przypisaniu wszystkich instancji do jednego klastra) dzięki normalizacji zarówno instancyjnej, jak i klastrowej.
+
+  4. *Maksymalizacja informacji wzajemnej*: Mierzy zależność między danymi a przypisaniami klastrów, łącząc zalety uczenia reprezentacji i klastrowania w spójną strukturę.
+
+  5. *Klastrowanie kontrastywne*: Dzieli się na trzy warianty:
+     - *Instancyjny*: Kontrastuje przypisania klastrów dla różnych widoków tej samej instancji.
+     - *Klastrowy*: Wymusza różnorodność między centroidami klastrów.
+     - *Instancyjno-klastrowy*: Przyciąga instancje do odpowiadających im centroidów, jednocześnie odpychając od innych.
+
+  Metody te łączą zalety uczenia kontrastywnego (odporność na augmentację) z wymaganiami klastrowania, takimi jak separowalność klastrów. Należy jednak wziąć pod uwagę wyzwania, takie jak wrażliwość na zdegenerowane rozwiązania czy zależność od jakości pseudoznaczników, oraz potrzebę dalszych badań nad skalowalnością i równoważeniem między efektywnością a modelowaniem globalnych relacji.
+
+* Taksonomia Metod Głębokiego Klastrowania
+
+  Ten rozdział klasyfikuje metody głębokiego klastrowania w oparciu o sposób interakcji między modułem uczenia reprezentacji a modułem klastrowania. Wyróżniono cztery główne kategorie:
+
+  1. *Wieloetapowe klastrowanie (Multi-stage)*: Metody te oddzielają proces uczenia reprezentacji od klastrowania, najpierw przekształcając dane, a następnie stosując klasyczne algorytmy (np. K-means). Choć proste w implementacji, są suboptymalne, ponieważ reprezentacje nie są specjalnie dostosowane do klastrowania, a informacja zwrotna z klastrów nie wpływa na uczenie.
+
+  2. *Iteracyjne klastrowanie (Iterative)*: Polega na naprzemiennym aktualizowaniu reprezentacji i przypisań klastrów, wykorzystując pseudoznaczniki lub relacje jako wskazówki. Pomimo wzajemnego wzmacniania obu modułów, metody te są podatne na propagację błędów, szczególnie we wczesnych fazach uczenia.
+
+  3. *Generatywne klastrowanie (Generative)*: Modeluje strukturę klastrów jako rozkład generatywny (np. mieszaninę Gaussa w VAE lub GAN). Pozwala to na jednoczesne uczenie reprezentacji i klastrowania, ale wymaga założeń dotyczących rozkładu danych i może być niestabilne w treningu.
+
+  4. *Jednoczesne klastrowanie (Simultaneous)*: Optymalizuje oba moduły wspólnie w ramach jednego procesu, np. poprzez samouczenie, maksymalizację informacji wzajemnej lub uczenie kontrastywne. Choć metody te osiągają lepszą spójność, są podatne na zdegenerowane rozwiązania (np. kolaps do jednego klastra) i wymagają starannego balansowania między celami uczenia reprezentacji a klastrowania.
+
+  Jednoczesne metody są obecnie najbardziej obiecujące, ale wciąż wymagają badań nad poprawą ich stabilności i skalowalności. Dodatkowo, hybrydowe podejścia łączące różne techniki (np. kontrast + samouczenie) pokazują potencjał w przezwyciężaniu ograniczeń poszczególnych kategorii. Kluczowym wyzwaniem pozostaje zapewnienie, aby interakcja między modułami prowadziła do wzajemnego wzmocnienia, a nie konfliktu celów optymalizacji.
+
+* Aplikacje
+
+  Prezentuje kluczowe zastosowania głębokiego klastrowania w różnych dziedzinach, podkreślając jego wartość w odkrywaniu ukrytych wzorców w danych:
+
+  1. *Community Detection*: W analizie sieci społecznościowych głębokie klastrowanie pozwala identyfikować spójne grupy węzłów, łącząc topologię grafu z atrybutami węzłów. Metody te stopniowo zastępują tradycyjne podejścia oparte na modularności czy spektralnych.
+
+  2. *Wykrywanie anomalii*: Techniki klastrowania służą do identyfikacji nietypowych wzorców, gdzie anomalie są definiowane jako punkty odległe od centroidów klastrów. Nowoczesne podejścia integrują detekcję anomalii z procesem klastrowania w jednolity framework.
+
+  3. *Segmentacja i detekcja obiektów*: W przetwarzaniu obrazów i wideo, klastrowanie pikseli lub regionów umożliwia automatyczną segmentację scen. W przypadku danych 3D, techniki te wspierają również detekcję obiektów o spójnej geometrii.
+
+  4. *Zastosowania medyczne*: Głębokie klastrowanie znajduje zastosowanie w automatycznej kategoryzacji obrazów medycznych oraz analizie danych sekwencjonowania RNA, wspierając diagnostykę i odkrywanie nowych typów komórek.
+
+  Obecnie głębokie klastrowanie nabiera znaczenie w analizie złożonych, wielowymiarowych danych, gdzie tradycyjne metody często zawodzą. Szczególną uwagę zwraca się na potencjał integracji klastrowania z innymi zadaniami uczenia maszynowego, takimi jak transfer learning czy detekcja anomalii, co otwiera nowe możliwości w badaniach naukowych i zastosowaniach przemysłowych.
+
+* Kierunki Rozwoju
+
+  Ten rozdział identyfikuje kluczowe wyzwania i perspektywy rozwoju głębokiego klastrowania, wskazując obszary wymagające dalszych badań:
+
+  1. *Inicjacja i stabilność*: Problemy związane z inicjacją modułu klastrowania oraz wrażliwość na warunki początkowe pozostają nierozwiązanymi wyzwaniami, pomimo postępów w pre-treningu reprezentacji.
+
+  2. *Instancje należące do wielu klastrów*: Obecne metody głównie skupiają się na rozłącznych klastrach, podczas gdy rzeczywiste scenariusze (np. tagowanie treści) często wymagają modelowania przynależności do wielu klastrów jednocześnie.
+
+  3. *Niezbalansowane dane*: Dominujące podejścia oparte na maksymalizacji entropii zakładają równomierny rozkład klastrów, co ogranicza ich skuteczność w przypadku danych o nierównomiernej strukturze.
+
+  4. *Integracja z uczeniem reprezentacji*: Istnieje potrzeba lepszego wykorzystania struktury klastrów do poprawy jakości reprezentacji, a nie tylko odwrotnego podejścia.
+
+  5. *Interpretowalność wyników*: Brak mechanizmów wyjaśniających decyzje klastrowania utrudnia zaufanie i praktyczne wdrożenie w krytycznych zastosowaniach.
+
+  6. *Transfer learning*: Połączenie technik adaptacji dziedzinowej z klastrowaniem oferuje obiecującą ścieżkę dla problemów z ograniczonymi danymi treningowymi.
+
+  7. *Odporność na anomalie*: Obecne metody są często wrażliwe na obecność punktów odstających, co wymaga rozwoju bardziej robustnych rozwiązań.
+
+  8. *Skalowalność*: Konflikt między efektywnością obliczeniową a zdolnością do modelowania globalnych relacji w dużych zbiorach danych pozostaje nierozwiązany.
+
+  Przyszły postęp w dziedzinie będzie wymagał holistycznego podejścia, łączącego teoretyczne podstawy klastrowania z najnowszymi osiągnięciami w dziedzinie głębokiego uczenia, szczególnie w kontekście rosnącej złożoności danych i wymagań aplikacyjnych.

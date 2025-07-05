@@ -8,8 +8,8 @@
   - jakiś przykład, żeby było wiadomo że wiem o co chodzi
   - wzór matematyczny!!
 
-* TODO Dostarczyć
+* TODO
 ** uruchomić w Rust, Python
-** DONE napisać rozdział 1. wstęp do pracy
+** napisać rozdział 1. wstęp do pracy
 ** opisać algorytmy w 2.x, można zacząć 4.1, 4.2, 4.3
 ** zacząć implementację

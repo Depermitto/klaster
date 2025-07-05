@@ -4,4 +4,8 @@
 * DONE Generowanie dokumentacji dla całego projektu niezależnie od ilości i jakich języków
 * Zapoznać się z rozwiązaniami kolegów i chociaż spróbować ich użyć
 * Github Issues - zadania do wykonania. =Użytkownik nie sprawdza=
-* Wymagania - warunek do implementacji, co trzeba zrobić krok po kroku. =Użytkownik definiuje=
+* Doorstop wymagania funkcjonalne - warunek do implementacji, co trzeba zrobić krok po kroku. =Użytkownik definiuje=
+  Posiada wymaganie testowe, każde odnosi się do pliku/klasy z testami
+* DONE Dosłać jeden dokument w formacie Markdown na Slacku
+  DEADLINE: <2025-04-17 czw 12:00>
+

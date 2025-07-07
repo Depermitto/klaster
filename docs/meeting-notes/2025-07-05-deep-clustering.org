@@ -1,4 +1,4 @@
-#+TITLE: Opracowanie nowoczesnych podejść do metod głębokiego uczenia
+#+TITLE: Opracowanie nowoczesnych metod głębokiego uczenia
 #+AUTHOR: Piotr Jabłoński 325163
 #+DATE: 5 lipca 2025
 #+LANGUAGE: Polish
@@ -22,17 +22,17 @@
 
   6. *Uczenie reprezentacji w podprzestrzeniach*: Wykorzystuje założenie samowyrażalności danych, ale może być kosztowne obliczeniowo dla dużych zbiorów danych.
 
-  Bardzo istotne jest dostosowanie metod uczenia reprezentacji do konkretnych typów danych, takich jak obrazy, tekst, wideo czy grafy, oraz wskazują na wyzwania, takie jak efektywne modelowanie relacji między instancjami i zapewnienie skalowalności.
+  Bardzo istotne, aby wybrana metoda była w stanie efektywnie reprezentować wiele typów danych, takich jak obrazy, tekst, wideo czy grafy. Główne wyzwania, z którymi moduł uczenia reprezentacji się spiera to efektywne modelowanie relacji między instancjami i zapewnienie skalowalności.
 
 * Moduł Klastrowania
 
-  Zadaniem tego modułu jest przekształcanie niskowymiarowych reprezentacji danych w przypisania do klastrów. W przeciwieństwie do płytkich metod klastrowania, podejścia głębokie wykorzystują sieci neuronowe, aby generować miękkie przypisania probabilistyczne, unikając problemów związanych z optymalizacją dyskretnych etykiet. Autorzy omawiają kilka kluczowych metod:
+  Zadaniem tego modułu jest przekształcanie niskowymiarowych reprezentacji danych w przypisania do klastrów. W przeciwieństwie do płytkich metod klastrowania, podejścia głębokie wykorzystują sieci neuronowe, aby generować miękkie przypisania probabilistyczne, unikając problemów związanych z optymalizacją dyskretnych etykiet. Istnieje kilka kluczowych metod:
 
   1. *Relation Matching*: Porównuje podobieństwa między instancjami w przestrzeni osadzeń i przestrzeni etykiet, aby zachować spójność semantyczną. Choć intuicyjne, wymaga obliczeń dla wszystkich par instancji, co może być kosztowne.
 
   2. *Pseudo Labeling*: Wykorzystuje przypisania klastrów o wysokiej pewności jako nadzór, stosując podejścia instancyjne (np. entropia) lub relacyjne (np. must-link/cannot-link). Jakość pseudoznaczników zależy jednak od wstępnej wydajności modelu.
 
-  3. *Self-training*: Optymalizuje rozkład przypisań klastrów poprzez minimalizację dywergencji Kullbacka-Leiblera względem rozkładu pomocniczego. Zapobiega degeneracji rozwiązań (np. przypisaniu wszystkich instancji do jednego klastra) dzięki normalizacji zarówno instancyjnej, jak i klastrowej.
+  3. *Samouczenie*: Optymalizuje rozkład przypisań klastrów poprzez minimalizację dywergencji Kullbacka-Leiblera względem rozkładu pomocniczego. Zapobiega degeneracji rozwiązań (np. przypisaniu wszystkich instancji do jednego klastra) dzięki normalizacji zarówno instancyjnej, jak i klastrowej.
 
   4. *Maksymalizacja informacji wzajemnej*: Mierzy zależność między danymi a przypisaniami klastrów, łącząc zalety uczenia reprezentacji i klastrowania w spójną strukturę.
 
@@ -92,3 +92,34 @@
   8. *Skalowalność*: Konflikt między efektywnością obliczeniową a zdolnością do modelowania globalnych relacji w dużych zbiorach danych pozostaje nierozwiązany.
 
   Przyszły postęp w dziedzinie będzie wymagał holistycznego podejścia, łączącego teoretyczne podstawy klastrowania z najnowszymi osiągnięciami w dziedzinie głębokiego uczenia, szczególnie w kontekście rosnącej złożoności danych i wymagań aplikacyjnych.
+
+* Klaster
+  Obecnie (lipiec 2025 roku) najbardziej nowatorskim podejściem w dziedzinie głębokiego klastrowania jest *jednoczesne klastrowanie z hybrydowymi technikami* optymalizującymi zarówno reprezentacje, jak i moduł klastrowania. Celem pracy jest natomiast stworzenie biblioteki implementującej różne algorytmy grupowania, która zapewni dobre wyniki na różnorodnych danych. Problemem przy opracowywaniu nowego rozwiązania jest ryzyko, że będzie ono działało gorzej niż istniejące, sprawdzone algorytmy. Pomysły:
+** Iteracyjnie (DEC-like)
+*** Krok A: Forward pass + przypisanie do klastrów
+    1. Dane → Encoder → Embeddingi.
+    2. Oblicz podobieństwo embeddingów do centroidów klastrów (np. rozkład t-SNE lub miara odległości).
+    3. Przypisz punkty do klastrów (np. metodą soft-assignment w DEC).
+*** Krok B: Obliczenie straty
+    Strata to np. dywergencja KL między rozkładem przypisań a celem (np. "ostre" przypisania z poprzedniej iteracji).
+*** Krok C: Backpropagation + aktualizacja centroidów
+    - Gradient z funkcji straty klastrowania jest propagowany wstecz przez encoder.
+    - Tylko encoder jest aktualizowany – celem jest dostosowanie reprezentacji, aby lepiej pasowały do klastrów.
+    - Centroidy klastrów mogą być też aktualizowane (np. K-means-like tzn. średnie embeddingów).
+** Jednoczesne (simultaneous/joint)
+   Przebiega podobnie co do podejścia iteracyjnego z tą różnicą, że moduł reprezentacji (np. autoenkoder) oraz moduł klastrowania (np. sieć neuronowa z wyjściem softmax albo zmodyfikowane podejście z użyciem K-means) są uczone jednocześnie, tzn. za pomocą tej samej funkcji straty. Ta funkcja zwykle sumą innych strat np.:
+   - *Strata klastrowania*: np. dywergencja KL między rozkładem przypisań a celem (np. "ostre" przypisania z poprzedniej iteracji).
+   - *Strata rekonstrukcji* (jeśli jest decoder): MSE(*X*, *X_recon*).
+   - *Dodatkowa regularyzacja*: np. contrastive loss
+   - *Całkowita strata*: `α * loss_kluster + β * loss_recon + γ * loss_contrastive`  (wagi α, β i γ balansują wpływ komponentów).
+** Propozycja algorytmu (DFC-like)
+*** Moduł reprezentacji
+    - Autoencoder/MLP
+    - Inicjalizacja K-means (potencjalnie zmodyfikowane K-means z integracją funkcji straty)
+*** Moduł klastrowania ClusterLayer
+    - Sieć neuronowa klastrująca/Deep K-means
+*** Funkcja straty
+    - Dywergencja KL + MSE + loss_contrastive
+*** Nowości
+    - CPU-friendly. Stworzyć nowy algorytm jako część biblioteki i oczekiwać, że będzie lepszy niż istniejące state-of-the-art rozwiązania jest nierealistyczne, dlatego proponuję zaprojektować model z myślą o uruchamianiu go na procesorach. Efektywność będzie ograniczona, jednak dalej powinna być dużo lepsza niż naiwne K-means - szczególnie dla danych super-wielowymiarowych.
+    - Optimal Transport - teoria matematyczna, która pozwala na znalezienie najefektywniejszego sposobu przenoszenia "masy" między rozkładami prawdopodobieństwa przy minimalnym koszcie. Można użyć w module klastrowania zamiast funkcji softmax, albo K-means. Można spróbować użyć zamiast embeddingów w przestrzeni cech.

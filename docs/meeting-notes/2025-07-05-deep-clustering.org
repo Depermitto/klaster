@@ -106,12 +106,12 @@
     - Gradient z funkcji straty klastrowania jest propagowany wstecz przez encoder.
     - Tylko encoder jest aktualizowany – celem jest dostosowanie reprezentacji, aby lepiej pasowały do klastrów.
     - Centroidy klastrów mogą być też aktualizowane (np. K-means-like tzn. średnie embeddingów).
-** Jednoczesne (simultaneous/joint)
+** Jdnoczesne (simultaneous/joint)
    Przebiega podobnie co do podejścia iteracyjnego z tą różnicą, że moduł reprezentacji (np. autoenkoder) oraz moduł klastrowania (np. sieć neuronowa z wyjściem softmax albo zmodyfikowane podejście z użyciem K-means) są uczone jednocześnie, tzn. za pomocą tej samej funkcji straty. Ta funkcja zwykle sumą innych strat np.:
    - *Strata klastrowania*: np. dywergencja KL między rozkładem przypisań a celem (np. "ostre" przypisania z poprzedniej iteracji).
    - *Strata rekonstrukcji* (jeśli jest decoder): MSE(*X*, *X_recon*).
    - *Dodatkowa regularyzacja*: np. contrastive loss
-   - *Całkowita strata*: `α * loss_kluster + β * loss_recon + γ * loss_contrastive`  (wagi α, β i γ balansują wpływ komponentów).
+   - *Całkowita strata*: `α * leoss_kluster + β * loss_recon + γ * loss_contrastive` (wagi α, β i γ balansują wpływ komponentów).
 ** Propozycja algorytmu (DFC-like)
 *** Moduł reprezentacji
     - Autoencoder/MLP
@@ -123,3 +123,8 @@
 *** Nowości
     - CPU-friendly. Stworzyć nowy algorytm jako część biblioteki i oczekiwać, że będzie lepszy niż istniejące state-of-the-art rozwiązania jest nierealistyczne, dlatego proponuję zaprojektować model z myślą o uruchamianiu go na procesorach. Efektywność będzie ograniczona, jednak dalej powinna być dużo lepsza niż naiwne K-means - szczególnie dla danych super-wielowymiarowych.
     - Optimal Transport - teoria matematyczna, która pozwala na znalezienie najefektywniejszego sposobu przenoszenia "masy" między rozkładami prawdopodobieństwa przy minimalnym koszcie. Można użyć w module klastrowania zamiast funkcji softmax, albo K-means. Można spróbować użyć zamiast embeddingów w przestrzeni cech.
+** Prototyp
+   DEADLINE: <2025-07-14 Mon 11:30>
+*** Implementacja w Python
+*** Problem: sprawdzić czy koncepcja jest dobra na danych wielowymiarowych (mój vs K-means)
+

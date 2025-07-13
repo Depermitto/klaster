@@ -17,7 +17,7 @@ from sklearn.datasets import (
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--alg", type=str, choices=["kmeans", "hdbscan", "n2d"], required=True
+        "--alg", type=str, choices=["kmeans", "hdbscan", "n2d", "nddc"], required=True
     )
     parser.add_argument(
         "--hdbscan-min-cluster-size",
@@ -29,22 +29,22 @@ if __name__ == "__main__":
         "--hdbscan-min-samples", type=int, default=5, help="min_samples for HDBSCAN"
     )
     parser.add_argument(
-        "--n2d-epochs",
+        "--epochs",
         type=int,
         default=1000,
-        help="Number of epochs for n2d autoencoder training",
+        help="Number of epochs for autoencoder training",
     )
     parser.add_argument(
-        "--n2d-arch",
+        "--arch",
         type=str,
         default="500,500,2000",
-        help="Comma-separated layer sizes for n2d autoencoder architecture (e.g. '500,500,2000')",
+        help="Comma-separated layer sizes for autoencoder architecture (e.g. '500,500,2000')",
     )
     parser.add_argument(
-        "--n2d-verbose",
+        "--verbose",
         action="store_true",
         default=False,
-        help="Enable verbose output for n2d training",
+        help="Enable verbose output for training",
     )
     parser.add_argument(
         "--dataset",
@@ -100,7 +100,7 @@ if __name__ == "__main__":
         print(np.unique(y))
         n_clusters = 3
     elif args.dataset == "mnist":
-        X, y = fetch_openml("mnist_784", return_X_y=True)
+        X, y = fetch_openml("mnist_784", return_X_y=True, as_frame=False)
         X = X[:1000]
         y = y[:1000].astype(int)
         n_clusters = 10
@@ -121,12 +121,18 @@ if __name__ == "__main__":
             "min_cluster_size": args.hdbscan_min_cluster_size,
             "min_samples": args.hdbscan_min_samples,
         }
-    else:
+    elif args.alg == "n2d":
         params = {
             "n_clusters": n_clusters,  # UmapGMM
-            "n2d_epochs": args.n2d_epochs,
-            "n2d_arch": [int(x) for x in args.n2d_arch.split(",")],
-            "n2d_verbose": args.n2d_verbose,
+            "epochs": args.epochs,
+            "arch": [int(x) for x in args.arch.split(",")],
+            "verbose": args.verbose,
+        }
+    elif args.alg == "nddc":
+        params = {
+            "n_clusters": n_clusters,
+            "epochs": args.epochs,
+            "arch": [int(x) for x in args.arch.split(",")],
         }
 
     if args.scaled:

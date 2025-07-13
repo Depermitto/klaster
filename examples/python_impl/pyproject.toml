@@ -5,8 +5,20 @@ description = "Klaster examples measure scikit-learn KMeans, HDBSCAN against kla
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "torch>=2.7.1",
+    "torchaudio>=2.7.1",
+    "torchvision>=0.22.1",
     "hdbscan>=0.8.40",
     "n2d>=0.3.2",
     "pandas>=2.3.0",
     "scikit-learn>=1.7.0",
 ]
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+torchvision = [{ index = "pytorch-cpu" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true

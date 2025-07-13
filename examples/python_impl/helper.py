@@ -9,11 +9,13 @@ from time import perf_counter
 import numpy as np
 from sklearn import metrics
 
+from tqdm import tqdm
+
 
 def benchmark_python(X, y, algorithm, runs, **params):
     timestamp = datetime.now().strftime("%d.%m.%Y-%H:%M:%S")
     all_results = []
-    for _ in range(runs):
+    for _ in tqdm(range(runs)):
         start_time = perf_counter()
         if algorithm == "kmeans":
             from sklearn.cluster import KMeans
@@ -26,24 +28,44 @@ def benchmark_python(X, y, algorithm, runs, **params):
                 min_cluster_size=params["min_cluster_size"],
                 min_samples=params["min_samples"],
             ).fit_predict(X)
-        else:
+        elif algorithm == "n2d":
             import n2d
 
             n_clusters = params["n_clusters"]
             ae = n2d.AutoEncoder(
-                X.shape[1],
+                input_dim=X.shape[1],
                 latent_dim=n_clusters,
-                architecture=params["n2d_arch"],
+                architecture=params["arch"],
             )
             manifoldGMM = n2d.UmapGMM(n_clusters)
 
             clusterer = n2d.n2d(ae, manifoldGMM)
             cluster_labels = clusterer.fit_predict(
                 X,
-                epochs=params["n2d_epochs"],
-                verbose=params["n2d_verbose"],
+                epochs=params["epochs"],
+                verbose=params["verbose"],
                 weight_id=f"weights/{timestamp}-ae.weights.h5",
             )
+        elif algorithm == "nddc":
+            from nddc import NDDC
+            import torch
+
+            X_tensor = torch.from_numpy(X).float()
+            n_clusters = params["n_clusters"]
+
+            clusterer = NDDC(
+                input_dim=X_tensor.shape[1],
+                latent_dim=n_clusters,
+                architecture=params["arch"],
+                n_clusters=n_clusters,
+            )
+
+            clusterer.fit(
+                X_tensor,
+                epochs=params["epochs"],
+                model_id=f"weights/{timestamp}-nddc.pt",
+            )
+            cluster_labels = clusterer.predict(X_tensor)
 
         end_time = perf_counter()
 
@@ -86,5 +108,7 @@ def benefit_of_doubt_acc(y_true, y_pred):
             true_label = mode(y_true[y_pred == cluster])[0]
             label_mapping[cluster] = true_label
 
-    aligned_labels = np.array([label_mapping.get(pred) for pred in y_pred])
+    aligned_labels = np.array(
+        [label_mapping.get(pred, most_common_label) for pred in y_pred]
+    )
     return metrics.accuracy_score(y_true, aligned_labels)

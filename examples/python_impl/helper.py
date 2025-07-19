@@ -64,6 +64,10 @@ def benchmark_python(X, y, algorithm, runs, **params):
                 X_tensor,
                 epochs=params["epochs"],
                 model_id=f"weights/{timestamp}-nddc.pt",
+                batch_size=32,
+                reconstruction_weight=0.5,
+                clustering_weight=0.5,
+                constrast_weight=5,
             )
             cluster_labels = clusterer.predict(X_tensor)
 

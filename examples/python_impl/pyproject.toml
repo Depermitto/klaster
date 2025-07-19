@@ -12,6 +12,8 @@ dependencies = [
     "n2d>=0.3.2",
     "pandas>=2.3.0",
     "scikit-learn>=1.7.0",
+    "munkres>=1.1.4",
+    "optuna>=4.4.0",
 ]
 
 [tool.uv.sources]

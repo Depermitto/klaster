@@ -150,30 +150,35 @@ def err_rate(gt_s, s):
     return missrate
 
 
-def imgnorm(imgdata: np.array, into: tuple[float, float] = (-1, 1)):
-    from_min, from_max = np.min(imgdata), np.max(imgdata)
-    return (imgdata - from_min) * (into[1] - into[0]) / (from_max - from_min) + into[0]
+def imgnorm(imgdata: np.array, low: float, high: float):
+    from_low, from_high = np.min(imgdata), np.max(imgdata)
+    return (imgdata - from_low) * (high - low) / (from_high - from_low) + low
 
 
 def objective(trial: optuna.Trial):
     batch_size = trial.suggest_categorical("batch_size", [8, 64, 128, 256])
     architecture = [
-        trial.suggest_int("layer1_units", 256, 1024, step=128),
-        trial.suggest_int("layer2_units", 128, 512, step=64),
-        trial.suggest_int("layer3_units", 32, 256, step=32),
+        trial.suggest_int("layer1_units", 256, 2048, step=128),
+        trial.suggest_int("layer2_units", 128, 1024, step=64),
+        trial.suggest_int("layer3_units", 32, 512, step=32),
     ]
     latent_dim = trial.suggest_int("latent_dim", 5, 50)
-    alpha = trial.suggest_float("alpha", 0.1, 2.0)
-    beta = trial.suggest_float("beta", 0.1, 2.0)
-    lam = trial.suggest_float("lam", 0.1, 2.0)
-    hyper_m = trial.suggest_float("hyper_m", 0.5, 2.0)
+    # alpha = trial.suggest_float("alpha", 0.1, 2.0)
+    # beta = trial.suggest_float("beta", 0.1, 2.0)
+    # lam = trial.suggest_float("lam", 0.1, 2.0)
+    # hyper_m = trial.suggest_float("hyper_m", 0.5, 2.0)
+    alpha = 1.0
+    beta = 1.1
+    lam = 1.0
+    hyper_m = 1.5
     lr = trial.suggest_float("lr", 1e-4, 1e-2, log=True)
     epochs = 65
 
     X, y = fetch_openml("mnist_784", return_X_y=True, as_frame=False)
-    X = X[:1000]
-    y = y[:1000]
-    X = torch.FloatTensor(imgnorm(X))
+    subset_len = 20000
+    X = X[:subset_len]
+    X = torch.FloatTensor(imgnorm(X, -1, 1))
+    y = np.array(y[:subset_len]).astype(float)
     dataloader = torch.utils.data.DataLoader(X, batch_size=batch_size, shuffle=True)
 
     model = CharCluster(
@@ -187,11 +192,13 @@ def objective(trial: optuna.Trial):
         hyper_m=hyper_m,
     )
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    criterion = nn.MSELoss()
 
-    for epoch in range(epochs):
+    # Pretrain autoencoder
+    for epoch in range(int(epochs * 0.3)):
         for batch in dataloader:
-            recon, embedding, p = model(batch)
-            loss, _, _ = model.build_loss(batch, recon, embedding, p)
+            recon, _, _ = model(batch)
+            loss = criterion(recon, batch)
 
             optimizer.zero_grad()
             loss.backward()
@@ -201,14 +208,41 @@ def objective(trial: optuna.Trial):
             with torch.no_grad():
                 _, _, all_p = model(X)
                 targets_label = np.argmax(all_p.cpu().numpy(), axis=1)
-                # missrate_xkl = err_rate(y, targets_label)
-                # acc = 1 - missrate_xkl
+                missrate_xkl = err_rate(y, targets_label)
+                acc = 1 - missrate_xkl
                 nmi = normalized_mutual_info_score(y, targets_label)
 
                 trial.report(nmi, epoch)
-                # print(
-                #     f"epoch: {epoch + 1} acc: {acc:.4f} nmi: {nmi:.4f} | loss: {loss.item():.4f} recon_loss: {recon_loss.item():.4f} cluster_loss: {cluster_loss.item():.4f}",
-                # )
+                print(
+                    f"AUTOENC: epoch: {epoch + 1} acc: {acc:.4f} nmi: {nmi:.4f} | loss: {loss.item():.4f}"
+                )
+
+                if trial.should_prune():
+                    raise optuna.exceptions.TrialPruned()
+
+    for epoch in range(epochs):
+        for batch in dataloader:
+            recon, embedding, p = model(batch)
+            loss, recon_loss, cluster_loss = model.build_loss(
+                batch, recon, embedding, p
+            )
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+        if (epoch + 1) % 5 == 0:
+            with torch.no_grad():
+                _, _, all_p = model(X)
+                targets_label = np.argmax(all_p.cpu().numpy(), axis=1)
+                missrate_xkl = err_rate(y, targets_label)
+                acc = 1 - missrate_xkl
+                nmi = normalized_mutual_info_score(y, targets_label)
+
+                trial.report(nmi, epochs + epoch)
+                print(
+                    f"FITTING: epoch: {epoch + 1} acc: {acc:.4f} nmi: {nmi:.4f} | loss: {loss.item():.4f} recon_loss: {recon_loss.item():.4f} cluster_loss: {cluster_loss.item():.4f}",
+                )
 
                 if trial.should_prune():
                     raise optuna.exceptions.TrialPruned()
@@ -221,8 +255,21 @@ def main():
         sampler=optuna.samplers.TPESampler(),
         pruner=optuna.pruners.MedianPruner(n_warmup_steps=10),
     )
-
-    study.optimize(objective, n_trials=100)
+    study.enqueue_trial(
+        {
+            "batch_size": 128,
+            "lr": 1e-3,
+            "layer1_units": 1024,
+            "layer2_units": 512,
+            "layer3_units": 228,
+            "latent_dim": 8,
+            "alpha": 1.0,
+            "beta": 1.1,
+            "lam": 1.0,
+            "hyper_m": 1.5,
+        }
+    )
+    study.optimize(objective)
 
     print("Best trial:")
     trial = study.best_trial

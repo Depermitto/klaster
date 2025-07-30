@@ -158,9 +158,9 @@ def imgnorm(imgdata: np.array, low: float, high: float):
 def objective(trial: optuna.Trial):
     batch_size = trial.suggest_categorical("batch_size", [8, 64, 128, 256])
     architecture = [
-        trial.suggest_int("layer1_units", 256, 2048, step=128),
-        trial.suggest_int("layer2_units", 128, 1024, step=64),
-        trial.suggest_int("layer3_units", 32, 512, step=32),
+        trial.suggest_int("layer1_units", 256, 1024, step=128),
+        trial.suggest_int("layer2_units", 128, 512, step=64),
+        trial.suggest_int("layer3_units", 32, 256, step=32),
     ]
     latent_dim = trial.suggest_int("latent_dim", 5, 50)
     # alpha = trial.suggest_float("alpha", 0.1, 2.0)
@@ -175,7 +175,7 @@ def objective(trial: optuna.Trial):
     epochs = 65
 
     X, y = fetch_openml("mnist_784", return_X_y=True, as_frame=False)
-    subset_len = 20000
+    subset_len = 10000
     X = X[:subset_len]
     X = torch.FloatTensor(imgnorm(X, -1, 1))
     y = np.array(y[:subset_len]).astype(float)
@@ -212,13 +212,9 @@ def objective(trial: optuna.Trial):
                 acc = 1 - missrate_xkl
                 nmi = normalized_mutual_info_score(y, targets_label)
 
-                trial.report(nmi, epoch)
                 print(
                     f"AUTOENC: epoch: {epoch + 1} acc: {acc:.4f} nmi: {nmi:.4f} | loss: {loss.item():.4f}"
                 )
-
-                if trial.should_prune():
-                    raise optuna.exceptions.TrialPruned()
 
     for epoch in range(epochs):
         for batch in dataloader:
@@ -239,19 +235,15 @@ def objective(trial: optuna.Trial):
                 acc = 1 - missrate_xkl
                 nmi = normalized_mutual_info_score(y, targets_label)
 
-                trial.report(nmi, epochs + epoch)
                 print(
                     f"FITTING: epoch: {epoch + 1} acc: {acc:.4f} nmi: {nmi:.4f} | loss: {loss.item():.4f} recon_loss: {recon_loss.item():.4f} cluster_loss: {cluster_loss.item():.4f}",
                 )
-
-                if trial.should_prune():
-                    raise optuna.exceptions.TrialPruned()
     return nmi
 
 
 def main():
     study = optuna.create_study(
-        direction="maximize",
+        directions=["minimize", "maximize", "maximize"],
         sampler=optuna.samplers.TPESampler(),
         pruner=optuna.pruners.MedianPruner(n_warmup_steps=10),
     )
@@ -261,7 +253,7 @@ def main():
             "lr": 1e-3,
             "layer1_units": 1024,
             "layer2_units": 512,
-            "layer3_units": 228,
+            "layer3_units": 224,
             "latent_dim": 8,
             "alpha": 1.0,
             "beta": 1.1,
@@ -269,7 +261,21 @@ def main():
             "hyper_m": 1.5,
         }
     )
-    study.optimize(objective)
+    study.enqueue_trial(
+        {
+            "batch_size": 8,
+            "lr": 0.00015949720971646114,
+            "layer1_units": 768,
+            "layer2_units": 320,
+            "layer3_units": 192,
+            "latent_dim": 34,
+            "alpha": 1.0,
+            "beta": 1.1,
+            "lam": 1.0,
+            "hyper_m": 1.5,
+        }
+    )
+    study.optimize(objective, n_trials=5)
 
     print("Best trial:")
     trial = study.best_trial

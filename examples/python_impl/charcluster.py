@@ -139,6 +139,7 @@ def best_map(L1, L2):
     c = index[:, 1]
     newL2 = np.zeros(L2.shape)
     for i in range(nClass2):
+        print(Label1, Label2)
         newL2[L2 == Label2[i]] = Label1[c[i]]
     return newL2
 
@@ -174,8 +175,38 @@ def objective(trial: optuna.Trial):
     lr = trial.suggest_float("lr", 1e-4, 1e-2, log=True)
     epochs = 65
 
-    X, y = fetch_openml("mnist_784", return_X_y=True, as_frame=False)
-    subset_len = 10000
+    # UNIPEN
+    n_clusters = 52
+    import cv2
+    from os import listdir
+    from os.path import isfile, join
+
+    X = []
+    y = []
+    for i in [ord(c) for c in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"]:
+        path_img = f"/home/piotr/PW/Inżynierka/data/UNIPEN-64x64-grayscale/{i}/"
+        for file_name in [f for f in listdir(path_img) if isfile(join(path_img, f))]:
+            img = cv2.imread(path_img + file_name, 0)
+            # img = cv2.resize(img, (32, 32), interpolation=cv2.INTER_AREA)
+            img = img.reshape(-1)
+            X.append(img)
+            y.append(i)
+
+    X = np.array(X, dtype=np.uint8)
+    y = np.array(y, dtype=np.uint8)
+    print(X.shape, y.shape)
+
+    np.random.seed(42)
+    indices = np.random.permutation(len(X))
+    X = X[indices]
+    y = y[indices]
+    print(np.sort(np.unique(y)))
+
+    # MNIST
+    # n_clusters = 10
+    # X, y = fetch_openml("mnist_784", return_X_y=True, as_frame=False)
+
+    subset_len = 500
     X = X[:subset_len]
     X = torch.FloatTensor(imgnorm(X, -1, 1))
     y = np.array(y[:subset_len]).astype(float)
@@ -185,7 +216,7 @@ def objective(trial: optuna.Trial):
         input_dim=X.shape[1],
         architecture=architecture,
         latent_dim=latent_dim,
-        n_clusters=10,
+        n_clusters=n_clusters,
         alpha=alpha,
         beta=beta,
         lam=lam,
@@ -238,7 +269,7 @@ def objective(trial: optuna.Trial):
                 print(
                     f"FITTING: epoch: {epoch + 1} acc: {acc:.4f} nmi: {nmi:.4f} | loss: {loss.item():.4f} recon_loss: {recon_loss.item():.4f} cluster_loss: {cluster_loss.item():.4f}",
                 )
-    return nmi
+    return loss, nmi, acc
 
 
 def main():
@@ -278,11 +309,12 @@ def main():
     study.optimize(objective, n_trials=5)
 
     print("Best trial:")
-    trial = study.best_trial
-    print(f"  NMI: {trial.value}")
+    trials = study.best_trials
+    print(f"  NMI: {trials.value}")
     print("  Params: ")
-    for key, value in trial.params.items():
-        print(f"    {key}: {value}")
+    for trial in trials:
+        for key, value in trial.params.items():
+            print(f"    {key}: {value}")
 
 
 if __name__ == "__main__":

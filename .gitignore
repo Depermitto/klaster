@@ -4,6 +4,7 @@
 **/.venv
 **/__pycache__
 **/output
+**/training_log
 
 data
 examples/python_impl/weights

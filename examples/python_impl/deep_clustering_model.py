@@ -140,21 +140,23 @@ class Model(nn.Module):
         n_clusters: int,
         latent_dim: int,
         alpha: float = 1.0,
+        gamma: float = 2.0,
     ):
         super().__init__()
         self.n_clusters = n_clusters
         self.alpha = alpha
+        self.gamma = gamma
 
         # Build encoder
         self.encoder = nn.Sequential(
             # [32, 14, 14]
             nn.Conv2d(1, 32, 3, stride=2, padding=1),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
+            nn.GroupNorm(8, 32),
+            nn.LeakyReLU(0.01),
             # [64, 7, 7]
             nn.Conv2d(32, 64, 3, stride=2, padding=1),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
+            nn.GroupNorm(8, 64),
+            nn.LeakyReLU(0.01),
             nn.Flatten(),
             nn.Linear(64 * 7 * 7, latent_dim),
         )
@@ -165,8 +167,8 @@ class Model(nn.Module):
             nn.Unflatten(1, (64, 7, 7)),
             # [32, 14, 14]
             nn.ConvTranspose2d(64, 32, 3, stride=2, padding=1, output_padding=1),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
+            nn.GroupNorm(8, 32),
+            nn.LeakyReLU(0.01),
             # [1, 28, 28]
             nn.ConvTranspose2d(32, 1, 3, stride=2, padding=1, output_padding=1),
             nn.Sigmoid(),  # output is in [0,1]
@@ -209,8 +211,11 @@ class Model(nn.Module):
         return loss, p
 
     def loss(self, x, recon, embeddings: torch.Tensor):
-        # Reconstruction loss (MSE)
-        recon_loss = torch.mean(torch.sum((recon - x) ** 2, dim=1))
+        # Focal MSE (downright small errors, common in sparse data)
+        mse_loss = (x - recon) ** 2
+        focal_weight = torch.abs(x - recon) ** self.gamma
+        focal_loss = focal_weight * mse_loss
+        recon_loss = torch.mean(focal_loss)
 
         # Clustering loss
         cluster_loss, p = self.cluster_loss(embeddings)
@@ -237,7 +242,7 @@ def objective(trial: optuna.Trial):
 
     # Load dataset
     X, y, n_clusters = Datasets.MNIST()
-    subset_len = 60000
+    subset_len = 5000
     X = X[:subset_len]
     X = X.reshape(subset_len, 1, 28, 28)  # conv2d
     X = torch.FloatTensor(imgnorm(X, 0, 1))  # normalize

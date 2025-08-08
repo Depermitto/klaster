@@ -3,8 +3,10 @@
 
 use std::{collections::HashSet, fs, path::Path};
 
+use burn::backend::Wgpu;
 use clap::{Arg, Command};
 use hdbscan::{Hdbscan, HdbscanHyperParams};
+use klaster::{kmeans::init, sdc::ModelConfig};
 use linfa::{
     Dataset,
     traits::{Fit, Predict, Transformer},
@@ -23,7 +25,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Arg::new("alg")
                 .long("alg")
                 .required(true)
-                .value_parser(["kmeans-ref", "kmeans", "hdbscan-ref", "hdbscan", "n2d"])
+                .value_parser(["kmeans-ref", "kmeans", "hdbscan-ref", "hdbscan", "sdc"])
                 .help("Algorithm to use"),
         )
         .arg(
@@ -40,21 +42,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .arg(
             Arg::new("n2d_epochs")
-                .long("n2d-epochs")
+                .long("sdc-epochs")
                 .default_value("1000")
-                .help("Number of epochs for n2d autoencoder training"),
+                .help("Number of epochs for sdc autoencoder training"),
         )
         .arg(
             Arg::new("n2d_arch")
-                .long("n2d-arch")
+                .long("sdc-arch")
                 .default_value("500,500,2000")
-                .help("Comma-separated layer sizes for n2d autoencoder architecture"),
+                .help("Comma-separated layer sizes for sdc autoencoder architecture"),
         )
         .arg(
             Arg::new("n2d_verbose")
-                .long("n2d-verbose")
+                .long("sdc-verbose")
                 .action(clap::ArgAction::SetTrue)
-                .help("Enable verbose output for n2d training"),
+                .help("Enable verbose output for sdc training"),
         )
         .arg(
             Arg::new("dataset")
@@ -163,7 +165,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mnist::Mnist {
                 trn_img, trn_lbl, ..
             } = mnist::MnistBuilder::new()
-                .base_path("data/mnist")
+                .base_path("../datasets/MNIST/raw/")
                 .finalize();
 
             const SUBSET: usize = 1_000;
@@ -255,8 +257,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             })
         }
         "hdbscan" => unimplemented!(),
-        "n2d-ref" => panic!("no 3rd party implementation available"),
-        "n2d" => unimplemented!(),
+        "sdc-ref" => panic!("no 3rd party implementation available"),
+        "sdc" => unimplemented!(),
         _ => return Err("unknown algorithm".into()),
     };
 

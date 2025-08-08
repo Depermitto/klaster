@@ -19,6 +19,13 @@ crate-type = ["rlib", "cdylib"]
 [dependencies]
 ndarray = "0.15.6"
 rand = "0.9.1"
+burn = { version = "~0.18", features = [
+    "std",
+    "train",
+    "vision",
+    "wgpu",
+    "fusion",
+], default-features = false }
 # pyo3 = { version = "0.25.1", features = ["extension-module"] }
 
 [dev-dependencies]

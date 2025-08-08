@@ -2,5 +2,6 @@
 // Extended copyright information can be found in the LICENSE file.
 
 pub mod kmeans;
+pub mod sdc;
 
 pub use kmeans::{KMeans, KMeansInit};

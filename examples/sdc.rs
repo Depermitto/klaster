@@ -1,18 +1,13 @@
-use burn::{
-    backend::{Autodiff, Wgpu},
-    optim::AdamConfig,
-};
+use burn::optim::AdamConfig;
 use klaster::sdc::*;
 
 fn main() {
-    type MyBackend = Wgpu<f32, i32>;
-    type MyAutodiffBackend = Autodiff<MyBackend>;
-
-    let device = burn::backend::wgpu::WgpuDevice::default();
-    let artifact_dir = "/tmp/guide";
-    train::<MyAutodiffBackend>(
+    let device = Default::default();
+    println!("{:?}", device);
+    let artifact_dir = "/tmp/sdc";
+    train::<burn::backend::Autodiff<burn::backend::Vulkan>>(
         artifact_dir,
-        TrainingConfig::new(ModelConfig::new(10, 512), AdamConfig::new()),
+        TrainingConfig::new(SDCConfig::new(10, 8), AdamConfig::new()),
         device,
     );
 }

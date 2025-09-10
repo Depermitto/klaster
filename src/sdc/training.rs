@@ -10,11 +10,11 @@ use burn::{
     },
 };
 
-use crate::sdc::{ModelConfig, data::MnistBatcher};
+use crate::sdc::{MnistBatcher, SDCConfig};
 
 #[derive(Config)]
 pub struct TrainingConfig {
-    pub model: ModelConfig,
+    pub model: SDCConfig,
     pub optimizer: AdamConfig,
     #[config(default = 10)]
     pub num_epochs: usize,
@@ -35,6 +35,11 @@ fn create_artifact_dir(artifact_dir: &str) {
 }
 
 pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, device: B::Device) {
+    // TODO Pretrain autoencoder
+
+    // TODO Initialize centroids with K-Means
+
+    // Joint training
     create_artifact_dir(artifact_dir);
     config
         .save(format!("{artifact_dir}/config.json"))

@@ -137,7 +137,7 @@ pub struct KMeansFitted {
 
 impl KMeansFitted {
     /// Get a view of the learned centroids.
-    pub fn centroids(&self) -> ArrayView2<f64> {
+    pub fn centroids(&self) -> ArrayView2<'_, f64> {
         self.centroids.view()
     }
 

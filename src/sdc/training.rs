@@ -1,3 +1,8 @@
+use crate::KMeans;
+use crate::sdc::model::Centroids;
+use crate::sdc::{AutoencoderConfig, MnistBatcher, SDCConfig};
+use burn::data::dataset::Dataset;
+use burn::data::dataset::vision::MnistItem;
 use burn::{
     data::{dataloader::DataLoaderBuilder, dataset::vision::MnistDataset},
     optim::AdamConfig,
@@ -9,12 +14,12 @@ use burn::{
         metric::{AccuracyMetric, LossMetric},
     },
 };
-
-use crate::sdc::{MnistBatcher, SDCConfig};
+use burn_ndarray::NdArrayTensor;
 
 #[derive(Config)]
 pub struct TrainingConfig {
     pub model: SDCConfig,
+    pub autoencoder: AutoencoderConfig,
     pub optimizer: AdamConfig,
     #[config(default = 10)]
     pub num_epochs: usize,
@@ -35,11 +40,6 @@ fn create_artifact_dir(artifact_dir: &str) {
 }
 
 pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, device: B::Device) {
-    // TODO Pretrain autoencoder
-
-    // TODO Initialize centroids with K-Means
-
-    // Joint training
     create_artifact_dir(artifact_dir);
     config
         .save(format!("{artifact_dir}/config.json"))
@@ -61,7 +61,42 @@ pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, dev
         .num_workers(config.num_workers)
         .build(MnistDataset::test());
 
-    let learner = LearnerBuilder::new(artifact_dir)
+    // Pretrain autoencoder
+    let autoencoder_trained = LearnerBuilder::new(artifact_dir)
+        .metric_train_numeric(LossMetric::new())
+        .metric_valid_numeric(LossMetric::new())
+        .with_file_checkpointer(CompactRecorder::new())
+        .devices(vec![device.clone()])
+        .num_epochs(config.num_epochs * (3 / 10))
+        .summary()
+        .build(
+            config.autoencoder.init::<B>(&device),
+            config.optimizer.init(),
+            config.learning_rate,
+        )
+        .fit(dataloader_train.clone(), dataloader_test.clone());
+
+    // Initialize centroids with K-Means
+    let centroids = {
+        let images = MnistDataset::test()
+            .iter()
+            .chain(MnistDataset::train().iter())
+            .map(|item| TensorData::from(item.image).convert::<B::FloatElem>())
+            .map(|data| Tensor::<B, 2>::from_data(data, &device))
+            .map(|tensor| tensor.reshape([1, 1, 28, 28]))
+            .map(|tensor| ((tensor / 255) - 0.1307) / 0.3081)
+            .collect();
+        let images = Tensor::cat(images, 0);
+        let (_, embeddings) = autoencoder_trained.forward(images);
+
+        let kmeans = KMeans::new_plusplus(config.model.n_clusters);
+        todo!("make embeddings (type of Tensor<B, 2>) compatible with ArrayView<f64, 2>")
+        // let kmeans = kmeans.fit(embeddings);
+        // Centroids::Initialized(kmeans.centroids())
+    };
+
+    // Joint training
+    LearnerBuilder::new(artifact_dir)
         .metric_train_numeric(AccuracyMetric::new())
         .metric_valid_numeric(AccuracyMetric::new())
         .metric_train_numeric(LossMetric::new())
@@ -71,14 +106,13 @@ pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, dev
         .num_epochs(config.num_epochs)
         .summary()
         .build(
-            config.model.init::<B>(&device),
+            config
+                .model
+                .init::<B>(autoencoder_trained, centroids, &device),
             config.optimizer.init(),
             config.learning_rate,
-        );
-
-    let model_trained = learner.fit(dataloader_train, dataloader_test);
-
-    model_trained
+        )
+        .fit(dataloader_train, dataloader_test)
         .save_file(format!("{artifact_dir}/model"), &CompactRecorder::new())
         .expect("Trained model should be saved successfully");
 }

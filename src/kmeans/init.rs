@@ -3,7 +3,7 @@
 
 //! Centroid initialization strategies for KMeans clustering.
 
-use ndarray::{Array1, Array2, ArrayView2, Axis, Zip, s};
+use ndarray::{Array1, Array2, ArrayBase, Axis, Data, Ix2, Zip, s};
 use rand::distr::Distribution;
 
 use crate::kmeans::closest_centroid;
@@ -25,7 +25,7 @@ impl KMeansInit {
     pub fn run(
         &self,
         k_clusters: usize,
-        data: ArrayView2<f64>,
+        data: &ArrayBase<impl Data<Elem = f64>, Ix2>,
         rng: &mut impl rand::Rng,
     ) -> Array2<f64> {
         match self {
@@ -52,7 +52,7 @@ impl KMeansInit {
                         .and(&mut weights)
                         .for_each(|point, weight| {
                             let (_, min_dist) =
-                                closest_centroid(point, centroids.slice(s![0..c_idx, ..]));
+                                closest_centroid(&point, &centroids.slice(s![0..c_idx, ..]));
                             *weight = min_dist;
                         });
 

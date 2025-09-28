@@ -3,37 +3,27 @@
 
 //! Euclidean distance and functions used for optimizing distance measuring
 
-use ndarray::{ArrayView, ArrayView1, Dimension, Zip};
-
-// pub fn euclidean_sq<D>(a: ArrayView<f64, D>, b: ArrayView<f64, D>) -> f64
-// where
-//     D: Dimension,
-// {
-//     assert_eq!(a.dim(), b.dim());
-//     let a_flat = a.to_shape(a.len());
-//     let b_flat = b.to_shape(b.len());
-//     if let (Ok(a), Ok(b)) = (a_flat, b_flat) {
-//         fast_euclidean_sq(a.dot(&a), a.dot(&b), b.dot(&b))
-//     } else {
-//         fallback_euclidean_sq(a, b)
-//     }
-// }
+use ndarray::{ArrayBase, Data, Dimension, Ix1, Zip};
 
 #[inline]
-pub fn euclidean_sq_precomputed(a: ArrayView1<f64>, aa_dot: f64, b: ArrayView1<f64>) -> f64 {
-    aa_dot - 2.0 * a.dot(&b) + b.dot(&b)
+pub fn euclidean_sq_precomputed(
+    a: &ArrayBase<impl Data<Elem = f64>, Ix1>,
+    aa_dot: f64,
+    b: &ArrayBase<impl Data<Elem = f64>, Ix1>,
+) -> f64 {
+    aa_dot - 2.0 * a.dot(b) + b.dot(b)
 }
 
 #[inline]
-pub fn naive_euclidean_sq<D>(a: ArrayView<f64, D>, b: ArrayView<f64, D>) -> f64
-where
-    D: Dimension,
-{
+pub fn naive_euclidean_sq<D: Dimension>(
+    a: &ArrayBase<impl Data<Elem = f64>, D>,
+    b: &ArrayBase<impl Data<Elem = f64>, D>,
+) -> f64 {
     assert_eq!(a.dim(), b.dim());
     let a_flat = a.to_shape(a.len());
     let b_flat = b.to_shape(b.len());
     if let (Ok(a), Ok(b)) = (a_flat, b_flat) {
-        euclidean_sq_precomputed(a.view(), a.dot(&a), b.view())
+        euclidean_sq_precomputed(&a, a.dot(&a), &b)
     } else {
         Zip::from(a)
             .and(b)

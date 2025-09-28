@@ -18,7 +18,6 @@ crate-type = ["rlib", "cdylib"]
 
 [dependencies]
 ndarray = "0.15.6"
-rand = "0.9.1"
 burn = { version = "~0.18", features = [
     "std",
     "tui",
@@ -29,6 +28,7 @@ burn = { version = "~0.18", features = [
     "vulkan",
 ], default-features = false }
 burn-ndarray = "0.18.0"
+rand = "0.9.1"
 mnist = "0.6.0"
 serde = "1.0.221"
 # pyo3 = { version = "0.25.1", features = ["extension-module"] }

@@ -2,7 +2,7 @@ use crate::KMeans;
 use crate::sdc::model::Centroids;
 use crate::sdc::{AutoencoderConfig, MnistBatcher, SDCConfig};
 use burn::data::dataset::Dataset;
-use burn::data::dataset::vision::MnistItem;
+use burn::tensor::DType;
 use burn::{
     data::{dataloader::DataLoaderBuilder, dataset::vision::MnistDataset},
     optim::AdamConfig,
@@ -14,7 +14,7 @@ use burn::{
         metric::{AccuracyMetric, LossMetric},
     },
 };
-use burn_ndarray::NdArrayTensor;
+use ndarray::Array2;
 
 #[derive(Config)]
 pub struct TrainingConfig {
@@ -89,10 +89,22 @@ pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, dev
         let images = Tensor::cat(images, 0);
         let (_, embeddings) = autoencoder_trained.forward(images);
 
-        let kmeans = KMeans::new_plusplus(config.model.n_clusters);
-        todo!("make embeddings (type of Tensor<B, 2>) compatible with ArrayView<f64, 2>")
-        // let kmeans = kmeans.fit(embeddings);
-        // Centroids::Initialized(kmeans.centroids())
+        let embeddings_ndarray = unsafe {
+            Array2::from_shape_vec_unchecked(
+                embeddings.dims(),
+                embeddings
+                    .to_data()
+                    .convert_dtype(DType::F64)
+                    .to_vec()
+                    .expect("Tensor data should be converted to ndarray successfully"),
+            )
+        };
+        let kmeans_fitted = KMeans::new_plusplus(config.model.n_clusters).fit(&embeddings_ndarray);
+        let centroids = kmeans_fitted.centroids();
+        Centroids::Initialized(Tensor::from_data(
+            TensorData::new(centroids.to_owned().into_raw_vec(), centroids.shape()),
+            &device,
+        ))
     };
 
     // Joint training

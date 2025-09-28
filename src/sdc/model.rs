@@ -1,10 +1,10 @@
-use crate::sdc::autoencoder::{Autoencoder, AutoencoderConfig};
+use crate::sdc::autoencoder::Autoencoder;
 use crate::sdc::clustering::ClusteringOutput;
 use crate::sdc::loss::ClusterLoss;
 use crate::sdc::mnist_data::MnistBatch;
 use burn::prelude::*;
-use burn::tensor::Distribution;
 use burn::tensor::backend::AutodiffBackend;
+use burn::tensor::Distribution;
 use burn::train::{TrainOutput, TrainStep, ValidStep};
 
 #[derive(Module, Debug)]

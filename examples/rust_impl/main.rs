@@ -3,10 +3,8 @@
 
 use std::{collections::HashSet, fs, path::Path};
 
-use burn::backend::Wgpu;
 use clap::{Arg, Command};
 use hdbscan::{Hdbscan, HdbscanHyperParams};
-use klaster::{kmeans::init, sdc::ModelConfig};
 use linfa::{
     Dataset,
     traits::{Fit, Predict, Transformer},
@@ -18,6 +16,8 @@ use ndarray::{Array2, s};
 use ndarray_rand::rand::{Rng, thread_rng};
 
 mod metrics;
+
+const DATASET_DIR: &str = "/home/dev-main/datasets";
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = Command::new("Clustering Benchmark")
@@ -134,7 +134,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             todo!("do something with {:?}", dataset);
         }
         "bcw" => {
-            let file = std::fs::File::open("data/bcw.csv").expect("BCW dataset not found");
+            let file = fs::File::open(format!("{DATASET_DIR}/bcw.csv")).expect("BCW dataset not found");
             let dataset = linfa_datasets::array_from_csv(file, true, b',').expect("bad csv file");
 
             let targets = dataset.column(1).to_owned();
@@ -146,7 +146,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         "wine" => {
             let file =
-                std::fs::File::open("data/winequality-red.csv").expect("wine dataset not found");
+                fs::File::open(format!("{DATASET_DIR}/winequality-red.csv")).expect("wine dataset not found");
             let dataset = linfa_datasets::array_from_csv(file, true, b',').expect("bad csv file");
 
             let targets = dataset.column(11).to_owned();
@@ -165,20 +165,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mnist::Mnist {
                 trn_img, trn_lbl, ..
             } = mnist::MnistBuilder::new()
-                .base_path("../datasets/MNIST/raw/")
+                .base_path(format!("{DATASET_DIR}/MNIST/raw/").as_str())
                 .finalize();
 
             const SUBSET: usize = 1_000;
             let trn_img = trn_img[..SUBSET * 28 * 28].to_vec();
             let trn_lbl = trn_lbl[..SUBSET].to_vec();
 
-            let train_images = ndarray::Array2::from_shape_vec((SUBSET, 28 * 28), trn_img)
+            let train_images = Array2::from_shape_vec((SUBSET, 28 * 28), trn_img)
                 .expect("MNIST bad image conversion")
                 .mapv(|x| x as f64);
             let y_true = ndarray::Array1::from_shape_vec(SUBSET, trn_lbl)
                 .expect("MNIST bad label conversion");
             let train_labels = y_true.mapv(|x| x as usize);
-            let dataset = linfa::Dataset::new(train_images, train_labels);
+            let dataset = Dataset::new(train_images, train_labels);
 
             (10, dataset)
         }
@@ -222,7 +222,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             benchmark_runtime(runs, || {
                 let y_pred = klaster::KMeans::new_plusplus(n_clusters)
-                    .fit_predict(dataset.records().view())
+                    .fit_predict(dataset.records())
                     .to_vec();
 
                 vec![benefit_of_doubt_acc(&y_true, &y_pred)]

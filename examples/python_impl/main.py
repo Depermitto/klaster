@@ -101,8 +101,9 @@ if __name__ == "__main__":
         n_clusters = 3
     elif args.dataset == "mnist":
         X, y = fetch_openml("mnist_784", return_X_y=True, as_frame=False)
-        X = X[:1000]
-        y = y[:1000].astype(int)
+        SUBSET = 10_000
+        X = X[:SUBSET]
+        y = y[:SUBSET].astype(int)
         n_clusters = 10
     elif args.dataset == "20-newsgroups":
         from sklearn.feature_extraction.text import TfidfVectorizer

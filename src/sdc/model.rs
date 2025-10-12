@@ -1,10 +1,10 @@
 use crate::sdc::autoencoder::Autoencoder;
 use crate::sdc::clustering::ClusteringOutput;
+use crate::sdc::dataset::Batch;
 use crate::sdc::loss::ClusterLoss;
-use crate::sdc::mnist_data::MnistBatch;
 use burn::prelude::*;
-use burn::tensor::backend::AutodiffBackend;
 use burn::tensor::Distribution;
+use burn::tensor::backend::AutodiffBackend;
 use burn::train::{TrainOutput, TrainStep, ValidStep};
 
 #[derive(Module, Debug)]
@@ -83,16 +83,16 @@ impl<B: Backend> SDC<B> {
     }
 }
 
-impl<B: AutodiffBackend> TrainStep<MnistBatch<B>, ClusteringOutput<B>> for SDC<B> {
-    fn step(&self, batch: MnistBatch<B>) -> TrainOutput<ClusteringOutput<B>> {
+impl<B: AutodiffBackend> TrainStep<Batch<B>, ClusteringOutput<B>> for SDC<B> {
+    fn step(&self, batch: Batch<B>) -> TrainOutput<ClusteringOutput<B>> {
         let item = self.forward_clustering(batch.images, batch.targets);
 
         TrainOutput::new(self, item.loss.backward(), item)
     }
 }
 
-impl<B: Backend> ValidStep<MnistBatch<B>, ClusteringOutput<B>> for SDC<B> {
-    fn step(&self, batch: MnistBatch<B>) -> ClusteringOutput<B> {
+impl<B: Backend> ValidStep<Batch<B>, ClusteringOutput<B>> for SDC<B> {
+    fn step(&self, batch: Batch<B>) -> ClusteringOutput<B> {
         self.forward_clustering(batch.images, batch.targets)
     }
 }

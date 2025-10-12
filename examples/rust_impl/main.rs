@@ -1,8 +1,6 @@
 // Copyright (C) 2025 Piotr Jabłoński
 // Extended copyright information can be found in the LICENSE file.
 
-use std::{collections::HashSet, fs, path::Path};
-
 use clap::{Arg, Command};
 use hdbscan::{Hdbscan, HdbscanHyperParams};
 use linfa::{
@@ -14,10 +12,11 @@ use linfa_preprocessing::linear_scaling::LinearScaler;
 use metrics::{benchmark_runtime, benefit_of_doubt_acc};
 use ndarray::{Array2, s};
 use ndarray_rand::rand::{Rng, thread_rng};
+use std::{collections::HashSet, fs, path::Path};
 
 mod metrics;
 
-const DATASET_DIR: &str = "/home/dev-main/datasets";
+const DATASET_DIR: &str = "datasets";
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = Command::new("Clustering Benchmark")
@@ -134,7 +133,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             todo!("do something with {:?}", dataset);
         }
         "bcw" => {
-            let file = fs::File::open(format!("{DATASET_DIR}/bcw.csv")).expect("BCW dataset not found");
+            let file =
+                fs::File::open(format!("{DATASET_DIR}/bcw.csv")).expect("BCW dataset not found");
             let dataset = linfa_datasets::array_from_csv(file, true, b',').expect("bad csv file");
 
             let targets = dataset.column(1).to_owned();
@@ -145,8 +145,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             (2, dataset)
         }
         "wine" => {
-            let file =
-                fs::File::open(format!("{DATASET_DIR}/winequality-red.csv")).expect("wine dataset not found");
+            let file = fs::File::open(format!("{DATASET_DIR}/winequality-red.csv"))
+                .expect("wine dataset not found");
             let dataset = linfa_datasets::array_from_csv(file, true, b',').expect("bad csv file");
 
             let targets = dataset.column(11).to_owned();

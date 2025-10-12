@@ -1,12 +1,12 @@
+mod autoencoder;
+mod cdist;
 mod clustering;
+pub mod dataset;
 mod loss;
-mod mnist_data;
 mod model;
 mod training;
-mod cdist;
-mod autoencoder;
 
-pub use mnist_data::MnistBatcher;
-pub use model::SDCConfig;
 pub use autoencoder::AutoencoderConfig;
+pub use dataset::DatasetConfig;
+pub use model::SDCConfig;
 pub use training::{TrainingConfig, train};

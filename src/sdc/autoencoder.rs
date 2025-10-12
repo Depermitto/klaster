@@ -1,4 +1,4 @@
-use crate::sdc::mnist_data::MnistBatch;
+use crate::sdc::dataset::Batch;
 use burn::nn::loss::{MseLoss, Reduction};
 use burn::tensor::backend::AutodiffBackend;
 use burn::train::{RegressionOutput, TrainOutput, TrainStep, ValidStep};
@@ -143,16 +143,16 @@ impl<B: Backend> Autoencoder<B> {
     }
 }
 
-impl<B: AutodiffBackend> TrainStep<MnistBatch<B>, RegressionOutput<B>> for Autoencoder<B> {
-    fn step(&self, batch: MnistBatch<B>) -> TrainOutput<RegressionOutput<B>> {
+impl<B: AutodiffBackend> TrainStep<Batch<B>, RegressionOutput<B>> for Autoencoder<B> {
+    fn step(&self, batch: Batch<B>) -> TrainOutput<RegressionOutput<B>> {
         let item = self.forward_regression(batch.images);
 
         TrainOutput::new(self, item.loss.backward(), item)
     }
 }
 
-impl<B: Backend> ValidStep<MnistBatch<B>, RegressionOutput<B>> for Autoencoder<B> {
-    fn step(&self, batch: MnistBatch<B>) -> RegressionOutput<B> {
+impl<B: Backend> ValidStep<Batch<B>, RegressionOutput<B>> for Autoencoder<B> {
+    fn step(&self, batch: Batch<B>) -> RegressionOutput<B> {
         self.forward_regression(batch.images)
     }
 }

@@ -1,10 +1,11 @@
 use crate::KMeans;
 use crate::sdc::model::Centroids;
-use crate::sdc::{AutoencoderConfig, MnistBatcher, SDCConfig};
-use burn::data::dataset::Dataset;
+use crate::sdc::{AutoencoderConfig, DatasetConfig, SDCConfig};
+use burn::data::dataloader::batcher::Batcher;
+use burn::data::dataset::InMemDataset;
 use burn::tensor::DType;
 use burn::{
-    data::{dataloader::DataLoaderBuilder, dataset::vision::MnistDataset},
+    data::dataloader::DataLoaderBuilder,
     optim::AdamConfig,
     prelude::*,
     record::CompactRecorder,
@@ -20,17 +21,20 @@ use ndarray::Array2;
 pub struct TrainingConfig {
     pub model: SDCConfig,
     pub autoencoder: AutoencoderConfig,
+    pub dataset: DatasetConfig,
     pub optimizer: AdamConfig,
-    #[config(default = 10)]
+    #[config(default = 65)]
     pub num_epochs: usize,
-    #[config(default = 64)]
+    #[config(default = 8)]
     pub batch_size: usize,
     #[config(default = 4)]
     pub num_workers: usize,
     #[config(default = 42)]
     pub seed: u64,
     #[config(default = 1.0e-4)]
-    pub learning_rate: f64,
+    pub lr: f64,
+    #[config(default = 0.6)]
+    pub pretraining_period: f64,
 }
 
 fn create_artifact_dir(artifact_dir: &str) {
@@ -47,19 +51,21 @@ pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, dev
 
     B::seed(config.seed);
 
-    let batcher = MnistBatcher::default();
+    let batcher = config.dataset.batcher();
+    let dataset_train = InMemDataset::new(config.dataset.train_items());
+    let dataset_test = InMemDataset::new(config.dataset.test_items());
 
-    let dataloader_train = DataLoaderBuilder::new(batcher.clone())
+    let dataloader_train = DataLoaderBuilder::new(batcher)
         .batch_size(config.batch_size)
         .shuffle(config.seed)
         .num_workers(config.num_workers)
-        .build(MnistDataset::train());
+        .build(dataset_train);
 
     let dataloader_test = DataLoaderBuilder::new(batcher)
         .batch_size(config.batch_size)
         .shuffle(config.seed)
         .num_workers(config.num_workers)
-        .build(MnistDataset::test());
+        .build(dataset_test);
 
     // Pretrain autoencoder
     let autoencoder_trained = LearnerBuilder::new(artifact_dir)
@@ -67,27 +73,19 @@ pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, dev
         .metric_valid_numeric(LossMetric::new())
         .with_file_checkpointer(CompactRecorder::new())
         .devices(vec![device.clone()])
-        .num_epochs(config.num_epochs * (3 / 10))
+        .num_epochs((config.num_epochs as f64 * config.pretraining_period) as usize)
         .summary()
         .build(
             config.autoencoder.init::<B>(&device),
             config.optimizer.init(),
-            config.learning_rate,
+            config.lr,
         )
         .fit(dataloader_train.clone(), dataloader_test.clone());
 
     // Initialize centroids with K-Means
     let centroids = {
-        let images = MnistDataset::test()
-            .iter()
-            .chain(MnistDataset::train().iter())
-            .map(|item| TensorData::from(item.image).convert::<B::FloatElem>())
-            .map(|data| Tensor::<B, 2>::from_data(data, &device))
-            .map(|tensor| tensor.reshape([1, 1, 28, 28]))
-            .map(|tensor| ((tensor / 255) - 0.1307) / 0.3081)
-            .collect();
-        let images = Tensor::cat(images, 0);
-        let (_, embeddings) = autoencoder_trained.forward(images);
+        let whole = batcher.batch(config.dataset.train_items(), &device);
+        let (_, embeddings) = autoencoder_trained.forward(whole.images);
 
         let embeddings_ndarray = unsafe {
             Array2::from_shape_vec_unchecked(
@@ -122,7 +120,7 @@ pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, dev
                 .model
                 .init::<B>(autoencoder_trained, centroids, &device),
             config.optimizer.init(),
-            config.learning_rate,
+            config.lr,
         )
         .fit(dataloader_train, dataloader_test)
         .save_file(format!("{artifact_dir}/model"), &CompactRecorder::new())

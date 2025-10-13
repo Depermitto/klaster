@@ -10,6 +10,6 @@ fn process_strings(count: usize) -> Vec<String> {
 fn main() {
     for _ in 0..100 {
         let strings = process_strings(100);
-		_ = strings;
+        _ = strings;
     }
 }

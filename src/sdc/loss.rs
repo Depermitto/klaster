@@ -28,7 +28,7 @@ impl ClusteringLoss {
         let dist = pairwise_distances_squared(embeddings, centroids);
 
         let q: Tensor<B, 2> = 1.0 / (1.0 + dist / alpha);
-        let q: Tensor<B, 2> = q.powf_scalar((alpha + 1.0) / 2.0);
+        let q: Tensor<B, 2> = q.powf_scalar(f64::midpoint(alpha, 1.0));
         let q: Tensor<B, 2> = q.clone() / q.sum_dim(1);
 
         let p: Tensor<B, 2> = q.clone().powi_scalar(2) / q.clone().sum_dim(0);

@@ -55,6 +55,7 @@ impl Dataset {
         Self::items(&self.test_split, self.dims)
     }
 
+    #[must_use]
     pub fn batcher(&self) -> DatasetBatcher {
         let data = &self.train_split.images;
 
@@ -63,7 +64,7 @@ impl Dataset {
         let count = data.len() as f64;
 
         for &pixel in data {
-            let pixel_normalized = pixel as f64 / 255.0; // NORMALIZE HERE
+            let pixel_normalized = f64::from(pixel) / 255.0; // NORMALIZE HERE
             sum += pixel_normalized;
             sum_squares += pixel_normalized * pixel_normalized;
         }
@@ -101,7 +102,7 @@ impl<B: Backend> Batcher<B, ItemRaw, Batch<B>> for DatasetBatcher {
         let targets = items
             .iter() // ref
             .map(|item| {
-                Tensor::<B, 1, Int>::from_data([(item.label as i64).elem::<B::IntElem>()], device)
+                Tensor::<B, 1, Int>::from_data([i64::from(item.label).elem::<B::IntElem>()], device)
             })
             .collect();
 

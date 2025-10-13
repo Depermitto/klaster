@@ -1,5 +1,9 @@
 fn fib(n: i32) -> i32 {
-    if n <= 1 { n } else { fib(n - 1) + fib(n - 2) }
+    if n <= 1 {
+        n
+    } else {
+        fib(n - 1) + fib(n - 2)
+    }
 }
 
 fn a(x: f64, y: f64) -> f64 {
@@ -33,6 +37,6 @@ fn main() {
         x += a(x as f64, i as f64) as i32;
         x -= b(i as f64, x as f64, (i + x) as f64) as i32;
         x *= c(i);
-		_ = x;
+        _ = x;
     }
 }

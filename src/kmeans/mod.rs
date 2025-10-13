@@ -1,7 +1,7 @@
 // Copyright (C) 2025 Piotr Jabłoński
 // Extended copyright information can be found in the LICENSE file.
 
-//! KMeans clustering algorithm and related components.
+//! `KMeans` clustering algorithm and related components.
 //!
 //! This module provides the main [`KMeans`] model, as well as supporting types for
 //! centroid initialization ([`init`]) and distance metrics ([`dist`]).
@@ -40,7 +40,8 @@ pub struct KMeans {
 }
 
 impl KMeans {
-    /// Create a new KMeans model with random (Forgy) initialization and Euclidean distance.
+    /// Create a new `KMeans` model with random (Forgy) initialization and Euclidean distance.
+    #[must_use]
     pub fn new_random(k_clusters: usize) -> Self {
         assert_ne!(k_clusters, 0);
         Self {
@@ -51,7 +52,8 @@ impl KMeans {
         }
     }
 
-    /// Create a new KMeans model with KMeans++ initialization and Euclidean distance.
+    /// Create a new `KMeans` model with `KMeans`++ initialization and Euclidean distance.
+    #[must_use]
     pub fn new_plusplus(k_clusters: usize) -> Self {
         assert_ne!(k_clusters, 0);
         Self {
@@ -60,21 +62,23 @@ impl KMeans {
         }
     }
 
-    /// Set the convergence tolerance for the KMeans model.
+    /// Set the convergence tolerance for the `KMeans` model.
+    #[must_use]
     pub fn with_tolerance(mut self, tolerance: f64) -> Self {
         assert!(tolerance > 0.0);
         self.tolerance = tolerance;
         self
     }
 
-    /// Set the maximum number of iterations for the KMeans model.
+    /// Set the maximum number of iterations for the `KMeans` model.
+    #[must_use]
     pub fn with_max_iter(mut self, max_iter: usize) -> Self {
         assert_ne!(max_iter, 0);
         self.max_iter = max_iter;
         self
     }
 
-    /// Fit the KMeans model to the input data and return a fitted model.
+    /// Fit the `KMeans` model to the input data and return a fitted model.
     ///
     /// # Panics
     /// May occur if input `data` contains invalid values.
@@ -118,7 +122,7 @@ impl KMeans {
         KMeansFitted { centroids }
     }
 
-    /// Fit the KMeans model and return cluster assignments for each sample. This is equivalent to writing
+    /// Fit the `KMeans` model and return cluster assignments for each sample. This is equivalent to writing
     /// `.fit(data).predict(data)`
     ///
     /// # Panics
@@ -137,6 +141,7 @@ pub struct KMeansFitted {
 
 impl KMeansFitted {
     /// Get a view of the learned centroids.
+    #[must_use]
     pub fn centroids(&self) -> &Array2<f64> {
         &self.centroids
     }

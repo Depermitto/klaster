@@ -1,17 +1,17 @@
 // Copyright (C) 2025 Piotr Jabłoński
 // Extended copyright information can be found in the LICENSE file.
 
-//! Centroid initialization strategies for KMeans clustering.
+//! Centroid initialization strategies for `KMeans` clustering.
 
 use ndarray::{Array1, Array2, ArrayBase, Axis, Data, Ix2, Zip, s};
 use rand::distr::Distribution;
 
 use crate::kmeans::closest_centroid;
 
-/// Initialization methods for KMeans clustering.
+/// Initialization methods for `KMeans` clustering.
 ///
 /// - `Forgy`: Randomly selects `k` data points as initial centroids.
-/// - `PlusPlus`: Uses the KMeans++ algorithm to choose initial centroids, spreading them out
+/// - `PlusPlus`: Uses the `KMeans`++ algorithm to choose initial centroids, spreading them out
 ///   by selecting each new centroid with probability proportional to its squared distance
 ///   from the nearest existing centroid.
 #[derive(Clone, Copy)]
@@ -21,7 +21,7 @@ pub enum KMeansInit {
 }
 
 impl KMeansInit {
-    /// Initialize centroids for KMeans clustering using the selected method.
+    /// Initialize centroids for `KMeans` clustering using the selected method.
     pub fn run(
         &self,
         k_clusters: usize,

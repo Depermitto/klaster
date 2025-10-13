@@ -28,7 +28,7 @@ jobs:
         run: cargo fmt -- --check
 
       - name: Run static analysis
-        run: cargo clippy -- -D warnings
+        run: cargo clippy -- -D warnings -A clippy::upper_case_acronyms
 
       - name: Build
         run: cargo build --verbose

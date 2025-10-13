@@ -74,7 +74,7 @@ impl<B: Backend> Metric for ClusteringAccuracyMetric<B> {
     }
 
     fn clear(&mut self) {
-        self.state.reset()
+        self.state.reset();
     }
 }
 

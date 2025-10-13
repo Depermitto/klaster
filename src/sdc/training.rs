@@ -38,7 +38,7 @@ fn create_artifact_dir(artifact_dir: &str) {
     std::fs::create_dir_all(artifact_dir).ok();
 }
 
-pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, device: B::Device) {
+pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, device: &B::Device) {
     create_artifact_dir(artifact_dir);
     config
         .save(format!("{artifact_dir}/config.json"))
@@ -71,7 +71,7 @@ pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, dev
         .num_epochs((config.num_epochs as f64 * config.pretraining_period) as usize)
         .summary()
         .build(
-            config.autoencoder.init::<B>(&device),
+            config.autoencoder.init::<B>(device),
             config.optimizer.init(),
             config.lr,
         )
@@ -79,7 +79,7 @@ pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, dev
 
     // Initialize centroids with K-Means
     let centroids = {
-        let whole = batcher.batch(config.dataset.train_items(), &device);
+        let whole = batcher.batch(config.dataset.train_items(), device);
         let (_, embeddings) = autoencoder_trained.forward(whole.images);
 
         let embeddings_ndarray = unsafe {
@@ -96,7 +96,7 @@ pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, dev
         let centroids = kmeans_fitted.centroids();
         Centroids::Initialized(Tensor::from_data(
             TensorData::new(centroids.to_owned().into_raw_vec(), centroids.shape()),
-            &device,
+            device,
         ))
     };
 
@@ -115,7 +115,7 @@ pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, dev
         .build(
             config
                 .model
-                .init::<B>(autoencoder_trained, centroids, &device),
+                .init::<B>(autoencoder_trained, centroids, device),
             config.optimizer.init(),
             config.lr,
         )

@@ -3,14 +3,12 @@ use burn::{
     nn::loss::{MseLoss, Reduction},
     prelude::{Backend, Tensor},
 };
+use derive_new::new;
 
-pub struct ClusterLoss;
+#[derive(new)]
+pub struct ClusteringLoss;
 
-impl ClusterLoss {
-    pub fn new() -> Self {
-        Self
-    }
-
+impl ClusteringLoss {
     pub fn forward<B: Backend, const D: usize>(
         &self,
         logits: Tensor<B, D>,

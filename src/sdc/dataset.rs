@@ -1,15 +1,16 @@
 use burn::data::dataloader::batcher::Batcher;
-use burn::prelude::{Backend, Config, ElementConversion, Int, Tensor, TensorData};
+use burn::prelude::{Backend, ElementConversion, Int, Tensor, TensorData};
+use derive_new::new;
 use serde::{Deserialize, Serialize};
 
-#[derive(Config, Debug)]
-pub struct DatasetConfig {
+#[derive(new, Deserialize, Serialize, Debug, Clone)]
+pub struct Dataset {
     train_split: Split,
     test_split: Split,
     dims: Dims,
 }
 
-#[derive(Config, Debug, Copy)]
+#[derive(new, Deserialize, Serialize, Debug, Clone, Copy)]
 pub struct Dims {
     width: usize,
     height: usize,
@@ -27,13 +28,13 @@ impl From<Dims> for Vec<usize> {
     }
 }
 
-#[derive(Config, Debug)]
+#[derive(new, Deserialize, Serialize, Debug, Clone)]
 pub struct Split {
     images: Vec<u8>,
     labels: Vec<u8>,
 }
 
-impl DatasetConfig {
+impl Dataset {
     fn items(split: &Split, dims: Dims) -> Vec<ItemRaw> {
         assert_eq!(split.images.len(), split.labels.len() * dims.size());
 
@@ -41,10 +42,7 @@ impl DatasetConfig {
             .images
             .chunks_exact(dims.size())
             .zip(&split.labels)
-            .map(|(image_bytes, &label)| ItemRaw {
-                image_bytes: Vec::from(image_bytes),
-                label,
-            })
+            .map(|(image_bytes, &label)| ItemRaw::new(Vec::from(image_bytes), label))
             .collect();
         items
     }
@@ -79,14 +77,14 @@ impl DatasetConfig {
     }
 }
 
-#[derive(Config, Debug, Copy)]
+#[derive(new, Debug, Clone, Copy)]
 pub struct DatasetBatcher {
     dims: Dims,
     mean: f32,
     std: f32,
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone)]
+#[derive(new, Deserialize, Serialize, Debug, Clone)]
 pub(crate) struct ItemRaw {
     image_bytes: Vec<u8>,
     label: u8,

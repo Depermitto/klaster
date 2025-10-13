@@ -31,6 +31,7 @@ burn-ndarray = "0.18.0"
 rand = "0.9.1"
 mnist = "0.6.0"
 serde = "1.0.221"
+derive-new = "0.7.0"
 # pyo3 = { version = "0.25.1", features = ["extension-module"] }
 
 [dev-dependencies]

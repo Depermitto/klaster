@@ -1,19 +1,14 @@
 use crate::KMeans;
+use crate::sdc::metric::{ClusteringAccuracyMetric, NMIMetric};
 use crate::sdc::model::Centroids;
-use crate::sdc::{AutoencoderConfig, DatasetConfig, SDCConfig};
-use burn::data::dataloader::batcher::Batcher;
-use burn::data::dataset::InMemDataset;
-use burn::tensor::DType;
+use crate::sdc::{AutoencoderConfig, Dataset, SDCConfig};
 use burn::{
-    data::dataloader::DataLoaderBuilder,
+    data::{dataloader::DataLoaderBuilder, dataloader::batcher::Batcher, dataset::InMemDataset},
     optim::AdamConfig,
     prelude::*,
     record::CompactRecorder,
-    tensor::backend::AutodiffBackend,
-    train::{
-        LearnerBuilder,
-        metric::{AccuracyMetric, LossMetric},
-    },
+    tensor::{DType, backend::AutodiffBackend},
+    train::{LearnerBuilder, metric::LossMetric},
 };
 use ndarray::Array2;
 
@@ -21,7 +16,7 @@ use ndarray::Array2;
 pub struct TrainingConfig {
     pub model: SDCConfig,
     pub autoencoder: AutoencoderConfig,
-    pub dataset: DatasetConfig,
+    pub dataset: Dataset,
     pub optimizer: AdamConfig,
     #[config(default = 65)]
     pub num_epochs: usize,
@@ -107,8 +102,10 @@ pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, dev
 
     // Joint training
     LearnerBuilder::new(artifact_dir)
-        .metric_train_numeric(AccuracyMetric::new())
-        .metric_valid_numeric(AccuracyMetric::new())
+        .metric_train_numeric(ClusteringAccuracyMetric::new())
+        .metric_valid_numeric(ClusteringAccuracyMetric::new())
+        .metric_train_numeric(NMIMetric::new())
+        .metric_valid_numeric(NMIMetric::new())
         .metric_train_numeric(LossMetric::new())
         .metric_valid_numeric(LossMetric::new())
         .with_file_checkpointer(CompactRecorder::new())

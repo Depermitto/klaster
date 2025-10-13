@@ -1,7 +1,7 @@
 use crate::sdc::autoencoder::Autoencoder;
 use crate::sdc::clustering::ClusteringOutput;
 use crate::sdc::dataset::Batch;
-use crate::sdc::loss::ClusterLoss;
+use crate::sdc::loss::ClusteringLoss;
 use burn::prelude::*;
 use burn::tensor::Distribution;
 use burn::tensor::backend::AutodiffBackend;
@@ -65,7 +65,7 @@ impl<B: Backend> SDC<B> {
     ) -> ClusteringOutput<B> {
         let (recon, embeddings) = self.forward(x.clone());
 
-        let loss = ClusterLoss::new().forward::<B, 4>(
+        let loss = ClusteringLoss::new().forward::<B, 4>(
             x,
             recon,
             embeddings.clone(),

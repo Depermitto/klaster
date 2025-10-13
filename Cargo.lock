@@ -2849,6 +2849,7 @@ dependencies = [
  "burn-ndarray",
  "chrono",
  "clap",
+ "derive-new",
  "hdbscan",
  "linfa",
  "linfa-clustering",

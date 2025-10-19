@@ -25,7 +25,7 @@ impl<B: Backend> ItemLazy for ClusteringOutput<B> {
             .register(self.targets)
             .execute()
             .try_into()
-            .expect("Correct amount of tensor data");
+            .unwrap();
 
         let device = &Default::default();
 

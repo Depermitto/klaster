@@ -1,5 +1,5 @@
 use crate::KMeans;
-use crate::sdc::metric::{ClusteringAccuracyMetric, NMIMetric};
+use crate::sdc::metric::{ARIMetric, ClusteringAccuracyMetric, NMIMetric};
 use crate::sdc::model::Centroids;
 use crate::sdc::{AutoencoderConfig, Dataset, SDCConfig};
 use burn::{
@@ -106,6 +106,8 @@ pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, dev
         .metric_valid_numeric(ClusteringAccuracyMetric::new())
         .metric_train_numeric(NMIMetric::new())
         .metric_valid_numeric(NMIMetric::new())
+        .metric_train_numeric(ARIMetric::new())
+        .metric_valid_numeric(ARIMetric::new())
         .metric_train_numeric(LossMetric::new())
         .metric_valid_numeric(LossMetric::new())
         .with_file_checkpointer(CompactRecorder::new())

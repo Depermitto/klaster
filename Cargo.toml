@@ -32,6 +32,7 @@ rand = "0.9.1"
 mnist = "0.6.0"
 serde = "1.0.221"
 derive-new = "0.7.0"
+approx = "0.5.1"
 # pyo3 = { version = "0.25.1", features = ["extension-module"] }
 
 [dev-dependencies]

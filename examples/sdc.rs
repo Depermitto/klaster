@@ -2,7 +2,7 @@ use burn::optim::AdamConfig;
 use klaster::sdc::*;
 
 const DATASET_DIR: &str = "/home/dev-main/datasets";
-const SUBSET: usize = 1_000;
+const TRN_LEN: u32 = 500;
 const WIDTH: usize = 28;
 const HEIGHT: usize = 28;
 
@@ -15,11 +15,8 @@ fn main() {
         ..
     } = mnist::MnistBuilder::new()
         .base_path(format!("{DATASET_DIR}/MNIST/raw/").as_str())
+        .training_set_length(TRN_LEN)
         .finalize();
-    let trn_img = trn_img[..SUBSET * WIDTH * HEIGHT].to_vec();
-    let trn_lbl = trn_lbl[..SUBSET].to_vec();
-    let tst_img = tst_img[..SUBSET * WIDTH * HEIGHT].to_vec();
-    let tst_lbl = tst_lbl[..SUBSET].to_vec();
 
     let device = &Default::default();
     train::<burn::backend::Autodiff<burn_ndarray::NdArray>>(

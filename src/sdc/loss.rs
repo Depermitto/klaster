@@ -41,7 +41,6 @@ impl ClusteringLoss {
             .mean();
 
         // Combined loss with weighting coefficients
-
         recon_loss + alpha * cluster_loss
     }
 }

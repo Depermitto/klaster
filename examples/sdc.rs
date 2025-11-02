@@ -2,7 +2,7 @@ use burn::optim::AdamConfig;
 use klaster::sdc::*;
 
 const DATASET_DIR: &str = "/home/dev-main/datasets";
-const TRN_LEN: u32 = 500;
+const TRN_LEN: u32 = 5_000;
 const WIDTH: usize = 28;
 const HEIGHT: usize = 28;
 
@@ -19,11 +19,12 @@ fn main() {
         .finalize();
 
     let device = &Default::default();
+    let latent_dim = 10;
     train::<burn::backend::Autodiff<burn_ndarray::NdArray>>(
         "/tmp/sdc",
         TrainingConfig::new(
-            SDCConfig::new(10, 8).with_alpha(1.05),
-            AutoencoderConfig::new(8),
+            SDCConfig::new(10, latent_dim).with_alpha(1.05),
+            AutoencoderConfig::new(latent_dim),
             Dataset::new(
                 dataset::Split::new(trn_img, trn_lbl),
                 dataset::Split::new(tst_img, tst_lbl),

@@ -8,7 +8,7 @@ from helper import benefit_of_doubt_acc
 from munkres import Munkres
 from sklearn.cluster import KMeans
 from sklearn.datasets import fetch_openml
-from sklearn.metrics import normalized_mutual_info_score
+from sklearn.metrics import normalized_mutual_info_score, adjusted_rand_score
 from torchvision.utils import save_image
 
 
@@ -73,6 +73,7 @@ def log_training(
         y_pred = torch.argmax(q, dim=1).cpu().numpy()
         acc = benefit_of_doubt_acc(y, y_pred)
         nmi = normalized_mutual_info_score(y, y_pred)
+        ari = adjusted_rand_score(y, y_pred)
 
         recon, _ = model(X[:5])
         save_image(X[:5], f"{filepath_no_ext}_true.png")
@@ -84,12 +85,12 @@ def log_training(
         plt.colorbar()
         plt.savefig(f"{filepath_no_ext}_tsne.png")
 
-        log = f"{prefix}: epoch: {epoch + 1} acc: {acc:.4f} nmi: {nmi:.4f} | {suffix}"
+        log = f"{prefix}: epoch: {epoch + 1} acc: {acc:.4f} nmi: {nmi:.4f} ari: {ari:.4f} | {suffix}"
         with open(f"{filepath_no_ext}.log", "a") as f:
             f.write(log + "\n")
         print(log)
 
-    return acc, nmi
+    return acc, nmi, ari
 
 
 @final
@@ -269,7 +270,7 @@ def objective(trial: optuna.Trial):
 
         if (epoch + 1) % 5 == 0:
             msg = f"loss: {loss.item():.4f}"
-            acc, nmi = log_training(model, X, y, epoch, "AUTOENC", msg)
+            acc, nmi, ari = log_training(model, X, y, epoch, "AUTOENC", msg)
 
     # Initialize centroids
     with torch.no_grad():
@@ -299,7 +300,7 @@ def objective(trial: optuna.Trial):
 
         if (epoch + 1) % 5 == 0:
             msg = f"loss: {loss.item():.4f} recon_loss: {recon_loss.item():.4f} cluster_loss: {cluster_loss.item():.4f}"
-            acc, nmi = log_training(model, X, y, epoch, "FITTING", msg)
+            acc, nmi, ari = log_training(model, X, y, epoch, "FITTING", msg)
 
         if loss < best_loss - tol:
             best_loss = loss
@@ -308,7 +309,7 @@ def objective(trial: optuna.Trial):
             no_improvement += 1
 
         if no_improvement == patience:
-            return loss, acc, nmi
+            return loss, acc, nmi, ari
 
         # if epoch > 20:
         # Gradually decrease alpha
@@ -319,12 +320,12 @@ def objective(trial: optuna.Trial):
         # Gradually increase alpha
         # model.alpha = alpha * (1.0 + epoch / epochs)
 
-    return loss, acc, nmi
+    return loss, acc, nmi, ari
 
 
 def main():
     study = optuna.create_study(
-        directions=["minimize", "maximize", "maximize"],
+        directions=["minimize", "maximize", "maximize", "maximize"],
         sampler=optuna.samplers.TPESampler(),
         pruner=optuna.pruners.MedianPruner(n_warmup_steps=10),
     )
@@ -347,6 +348,7 @@ def main():
         print(f"  Loss: {trial.values[0]:.4f} (minimize)")
         print(f"  Accuracy: {trial.values[1]:.4f} (maximize)")
         print(f"  NMI: {trial.values[2]:.4f} (maximize)")
+        print(f"  ARI: {trial.values[3]:.4f} (maximize)")
         print("  Hyperparameters:")
         for key, value in trial.params.items():
             print(f"    {key}: {value}")

@@ -29,7 +29,7 @@ pub struct TrainingConfig {
     pub seed: u64,
     #[config(default = 1.0e-4)]
     pub lr: f64,
-    #[config(default = 0.6)]
+    #[config(default = 0.3)]
     pub pretraining_period: f64,
 }
 
@@ -85,20 +85,34 @@ pub fn train<B: AutodiffBackend>(
 
     // Initialize centroids with K-Means
     let centroids = {
-        let whole: Batch<B> = batcher.batch(dataset.train_items(), device);
-        let (_, embeddings) = autoencoder_trained.valid().forward(whole.images.valid());
+        let autoencoder_noautodiff = autoencoder_trained.valid();
 
-        let embeddings_ndarray = unsafe {
-            Array2::from_shape_vec_unchecked(
-                embeddings.dims(),
-                embeddings
-                    .to_data()
-                    .convert_dtype(DType::F64)
-                    .to_vec()
-                    .expect("Tensor data should be converted to ndarray successfully"),
-            )
-        };
+        let mut embeddings = Vec::<f64>::new();
+        for batch_raw in tqdm::tqdm(
+            dataset
+                .train_items()
+                .chunks(std::cmp::max(256, config.batch_size)),
+        )
+        .desc(Some("GPU+VRAM embeddings -> CPU+RAM in batches"))
+        {
+            let batch: Batch<B> = batcher.batch(batch_raw.to_vec(), device);
+            let (_, batch_embeddings) = autoencoder_noautodiff.forward(batch.images.valid());
+            let mut batch_embeddings_vec = batch_embeddings
+                .to_data()
+                .convert_dtype(DType::F64)
+                .to_vec::<f64>()
+                .expect("Tensor data should be converted to vec successfully");
+            embeddings.append(&mut batch_embeddings_vec);
+        }
+
+        let embeddings_ndarray = Array2::from_shape_vec(
+            dbg!([dataset.train_items().len(), config.autoencoder.latent_dim]),
+            embeddings,
+        )
+        .expect("Data shape should allow for construction of ndarray::Array2");
+
         let kmeans_fitted = KMeans::new_plusplus(config.model.n_clusters).fit(&embeddings_ndarray);
+
         let centroids = kmeans_fitted.centroids();
         Centroids::Initialized(Tensor::from_data(
             TensorData::new(centroids.to_owned().into_raw_vec(), centroids.shape()),

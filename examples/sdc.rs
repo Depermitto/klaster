@@ -57,8 +57,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             AdamConfig::new(),
         )
         .with_lr(0.00183)
-        .with_batch_size(16)
-        .with_num_workers(6),
+        .with_batch_size(64),
         Dataset::new(
             DatasetSplit::new(records, targets),
             DatasetSplit::empty(),

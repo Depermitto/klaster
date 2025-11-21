@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 pub struct Dataset {
     train_split: DatasetSplit,
     test_split: DatasetSplit,
-    dims: [usize; 2],
+    item_dims: [usize; 2],
 }
 
 #[derive(Debug, Clone)]
@@ -47,11 +47,11 @@ impl Dataset {
     }
 
     pub(crate) fn train_items(&self) -> Vec<ItemRaw> {
-        Self::items(&self.train_split, self.dims)
+        Self::items(&self.train_split, self.item_dims)
     }
 
     pub(crate) fn test_items(&self) -> Vec<ItemRaw> {
-        Self::items(&self.test_split, self.dims)
+        Self::items(&self.test_split, self.item_dims)
     }
 
     #[must_use]
@@ -73,7 +73,7 @@ impl Dataset {
         let std = variance.sqrt();
 
         dbg!("mean={}, std={}", mean, std);
-        DatasetBatcher::new(self.dims, mean, std)
+        DatasetBatcher::new(self.item_dims, mean, std)
     }
 }
 

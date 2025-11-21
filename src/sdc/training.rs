@@ -1,7 +1,9 @@
 use crate::KMeans;
+use crate::sdc::dataset::Batch;
 use crate::sdc::metric::{ARIMetric, ClusteringAccuracyMetric, NMIMetric};
 use crate::sdc::model::Centroids;
 use crate::sdc::{AutoencoderConfig, Dataset, SDCConfig};
+use burn::module::AutodiffModule;
 use burn::{
     data::{dataloader::DataLoaderBuilder, dataloader::batcher::Batcher, dataset::InMemDataset},
     optim::AdamConfig,
@@ -16,7 +18,6 @@ use ndarray::Array2;
 pub struct TrainingConfig {
     pub model: SDCConfig,
     pub autoencoder: AutoencoderConfig,
-    pub dataset: Dataset,
     pub optimizer: AdamConfig,
     #[config(default = 65)]
     pub num_epochs: usize,
@@ -38,7 +39,12 @@ fn create_artifact_dir(artifact_dir: &str) {
     std::fs::create_dir_all(artifact_dir).ok();
 }
 
-pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, device: &B::Device) {
+pub fn train<B: AutodiffBackend>(
+    artifact_dir: &str,
+    config: TrainingConfig,
+    dataset: Dataset,
+    device: &B::Device,
+) {
     create_artifact_dir(artifact_dir);
     config
         .save(format!("{artifact_dir}/config.json"))
@@ -46,9 +52,9 @@ pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, dev
 
     B::seed(config.seed);
 
-    let batcher = config.dataset.batcher();
-    let dataset_train = InMemDataset::new(config.dataset.train_items());
-    let dataset_test = InMemDataset::new(config.dataset.test_items());
+    let batcher = dataset.batcher();
+    let dataset_train = InMemDataset::new(dataset.train_items());
+    let dataset_test = InMemDataset::new(dataset.test_items());
 
     let dataloader_train = DataLoaderBuilder::new(batcher)
         .batch_size(config.batch_size)
@@ -79,8 +85,8 @@ pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, dev
 
     // Initialize centroids with K-Means
     let centroids = {
-        let whole = batcher.batch(config.dataset.train_items(), device);
-        let (_, embeddings) = autoencoder_trained.forward(whole.images);
+        let whole: Batch<B> = batcher.batch(dataset.train_items(), device);
+        let (_, embeddings) = autoencoder_trained.valid().forward(whole.images.valid());
 
         let embeddings_ndarray = unsafe {
             Array2::from_shape_vec_unchecked(

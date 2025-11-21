@@ -82,7 +82,7 @@ impl KMeans {
     ///
     /// # Panics
     /// May occur if input `data` contains invalid values.
-    pub fn fit(&self, data: &ArrayBase<impl Data<Elem = f64>, Ix2>) -> KMeansFitted {
+    pub fn fit(&self, data: &ArrayBase<impl Data<Elem = f64> + Sync, Ix2>) -> KMeansFitted {
         let mut rng = rand::rng();
 
         let mut centroids = self.init_fn.run(self.k_clusters, data, &mut rng);
@@ -127,7 +127,10 @@ impl KMeans {
     ///
     /// # Panics
     /// May occur if input `data` contains invalid values.
-    pub fn fit_predict(&self, data: &ArrayBase<impl Data<Elem = f64>, Ix2>) -> Array1<usize> {
+    pub fn fit_predict(
+        &self,
+        data: &ArrayBase<impl Data<Elem = f64> + Sync, Ix2>,
+    ) -> Array1<usize> {
         self.fit(data).predict(data)
     }
 }
@@ -151,7 +154,7 @@ impl KMeansFitted {
     /// Note: `data` and `memberships` must agree on the length of their first dimension ([`ndarray::Axis(0)`](ndarray::Axis))
     pub fn predict_inplace(
         &self,
-        data: &ArrayBase<impl Data<Elem = f64>, Ix2>,
+        data: &ArrayBase<impl Data<Elem = f64> + Sync, Ix2>,
         memberships: &mut Array1<usize>,
     ) {
         assert_eq!(data.nrows(), memberships.len());
@@ -159,7 +162,7 @@ impl KMeansFitted {
     }
 
     /// Assign clusters to the input data and return the assignments.
-    pub fn predict(&self, data: &ArrayBase<impl Data<Elem = f64>, Ix2>) -> Array1<usize> {
+    pub fn predict(&self, data: &ArrayBase<impl Data<Elem = f64> + Sync, Ix2>) -> Array1<usize> {
         let mut memberships = Array1::zeros(data.nrows());
         assign_clusters(data, self.centroids(), &mut memberships);
         memberships
@@ -167,13 +170,13 @@ impl KMeansFitted {
 }
 
 fn assign_clusters(
-    data: &ArrayBase<impl Data<Elem = f64>, Ix2>,
-    centroids: &ArrayBase<impl Data<Elem = f64>, Ix2>,
+    data: &ArrayBase<impl Data<Elem = f64> + Sync, Ix2>,
+    centroids: &ArrayBase<impl Data<Elem = f64> + Sync, Ix2>,
     memberships: &mut Array1<usize>,
 ) {
     Zip::from(data.outer_iter())
         .and(memberships)
-        .for_each(|point, membership| {
+        .par_for_each(|point, membership| {
             let (cluster_assignment, _) = closest_centroid(&point, centroids);
             *membership = cluster_assignment;
         });

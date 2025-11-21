@@ -10,7 +10,7 @@ use linfa::{
 use linfa_datasets::generate;
 use linfa_preprocessing::linear_scaling::LinearScaler;
 use metrics::{benchmark_runtime, benefit_of_doubt_acc};
-use ndarray::{Array2, s};
+use ndarray::{Array1, Array2, s};
 use ndarray_rand::rand::{Rng, thread_rng};
 use std::{collections::HashSet, fs, path::Path};
 
@@ -61,7 +61,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Arg::new("dataset")
                 .long("dataset")
                 .required(true)
-                .value_parser(["synth", "bcw", "wine", "mnist", "20-newsgroups"])
+                .value_parser(["synth", "bcw", "wine", "mnist", "20-newsgroups", "unipen"])
                 .help("Dataset to use"),
         )
         .arg(
@@ -168,7 +168,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .base_path(format!("{DATASET_DIR}/MNIST/raw/").as_str())
                 .finalize();
 
-            const SUBSET: usize = 1_000;
+            const SUBSET: usize = 10_000;
             let trn_img = trn_img[..SUBSET * 28 * 28].to_vec();
             let trn_lbl = trn_lbl[..SUBSET].to_vec();
 
@@ -182,7 +182,41 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             (10, dataset)
         }
-        "20-newsgroups" => unimplemented!(),
+        "unipen" => {
+            let unipen_dir = format!("{DATASET_DIR}/UNIPEN-64x64-grayscale");
+            let mut records = Vec::new();
+            let mut targets = Vec::new();
+
+            for entry in walkdir::WalkDir::new(unipen_dir)
+                .into_iter()
+                .filter_map(|e| e.ok())
+            {
+                let path = entry.path();
+                if path.is_file()
+                    && let Some(label) = path
+                        .parent()
+                        .and_then(|parent| parent.file_name())
+                        .and_then(|label_str| {
+                            label_str.to_str().and_then(|s| s.parse::<usize>().ok())
+                        })
+                {
+                    let img = image::ImageReader::open(path)?.decode()?.to_luma8();
+                    let img_vec = img.into_raw();
+                    records.extend(img_vec.iter().map(|&x| x as f64));
+                    targets.push(label);
+                }
+            }
+
+            let n_classes = targets.iter().collect::<HashSet<_>>().len();
+            assert_eq!(n_classes, 93);
+            let n_samples = targets.len();
+            let n_features = records.len() / n_samples;
+            let records = Array2::from_shape_vec((n_samples, n_features), records).unwrap();
+            let targets = Array1::from_vec(targets);
+            let dataset = Dataset::new(records, targets);
+
+            (n_classes, dataset)
+        }
         _ => return Err("unknown dataset".into()),
     };
 
@@ -257,8 +291,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             })
         }
         "hdbscan" => unimplemented!(),
-        "sdc-ref" => panic!("no 3rd party implementation available"),
-        "sdc" => unimplemented!(),
         _ => return Err("unknown algorithm".into()),
     };
 

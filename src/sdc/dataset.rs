@@ -3,44 +3,43 @@ use burn::prelude::{Backend, ElementConversion, Int, Tensor, TensorData};
 use derive_new::new;
 use serde::{Deserialize, Serialize};
 
-#[derive(new, Deserialize, Serialize, Debug, Clone)]
+#[derive(new, Debug, Clone)]
 pub struct Dataset {
-    train_split: Split,
-    test_split: Split,
-    dims: Dims,
+    train_split: DatasetSplit,
+    test_split: DatasetSplit,
+    dims: [usize; 2],
 }
 
-#[derive(new, Deserialize, Serialize, Debug, Clone, Copy)]
-pub struct Dims {
-    width: usize,
-    height: usize,
-}
-
-impl Dims {
-    fn size(&self) -> usize {
-        self.width * self.height
-    }
-}
-
-impl From<Dims> for Vec<usize> {
-    fn from(val: Dims) -> Self {
-        vec![val.height, val.width]
-    }
-}
-
-#[derive(new, Deserialize, Serialize, Debug, Clone)]
-pub struct Split {
+#[derive(Debug, Clone)]
+pub struct DatasetSplit {
     images: Vec<u8>,
     labels: Vec<u8>,
 }
 
+impl DatasetSplit {
+    pub fn new(images: impl Into<Vec<u8>>, labels: impl Into<Vec<u8>>) -> Self {
+        Self {
+            images: images.into(),
+            labels: labels.into(),
+        }
+    }
+
+    pub fn empty() -> Self {
+        Self {
+            images: Vec::new(),
+            labels: Vec::new(),
+        }
+    }
+}
+
 impl Dataset {
-    fn items(split: &Split, dims: Dims) -> Vec<ItemRaw> {
-        assert_eq!(split.images.len(), split.labels.len() * dims.size());
+    fn items(split: &DatasetSplit, dims: [usize; 2]) -> Vec<ItemRaw> {
+        let size = dims[0] * dims[1];
+        assert_eq!(split.images.len(), split.labels.len() * size);
 
         let items: Vec<_> = split
             .images
-            .chunks_exact(dims.size())
+            .chunks_exact(size)
             .zip(&split.labels)
             .map(|(image_bytes, &label)| ItemRaw::new(Vec::from(image_bytes), label))
             .collect();
@@ -80,7 +79,7 @@ impl Dataset {
 
 #[derive(new, Debug, Clone, Copy)]
 pub struct DatasetBatcher {
-    dims: Dims,
+    dims: [usize; 2],
     mean: f32,
     std: f32,
 }
@@ -110,7 +109,7 @@ impl<B: Backend> Batcher<B, ItemRaw, Batch<B>> for DatasetBatcher {
             .into_iter() // own
             .map(|item| TensorData::new(item.image_bytes, self.dims).convert::<B::FloatElem>())
             .map(|data| Tensor::<B, 2>::from_data(data, device))
-            .map(|tensor| tensor.reshape([1, 1, self.dims.width, self.dims.height]))
+            .map(|tensor| tensor.reshape([1, 1, self.dims[0], self.dims[1]]))
             // Normalize: scale between [0,1] and make the mean=0 and std=1
             .map(|tensor| ((tensor / 255) - self.mean) / self.std)
             .collect();

@@ -9,3 +9,5 @@
 data
 examples/python_impl/weights
 src/guide
+datasets
+out

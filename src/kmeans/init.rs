@@ -50,7 +50,7 @@ impl KMeansInit {
                     // square distance of the closest centroids
                     Zip::from(data.outer_iter())
                         .and(&mut weights)
-                        .for_each(|point, weight| {
+                        .par_for_each(|point, weight| {
                             let (_, min_dist) =
                                 closest_centroid(&point, &centroids.slice(s![0..c_idx, ..]));
                             *weight = min_dist;

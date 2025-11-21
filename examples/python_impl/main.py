@@ -49,7 +49,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--dataset",
         type=str,
-        choices=["synth", "bcw", "wine", "mnist", "20-newsgroups"],
+        choices=["synth", "bcw", "wine", "mnist", "20-newsgroups", "unipen"],
         required=True,
         help="Dataset to use",
     )
@@ -105,6 +105,16 @@ if __name__ == "__main__":
         X = X[:SUBSET]
         y = y[:SUBSET].astype(int)
         n_clusters = 10
+    elif args.dataset == "unipen":
+        from unipen_dataset import UnipenDataset
+
+        dataset = UnipenDataset(
+            root_dir="/home/dev-main/klaster/datasets/UNIPEN-64x64-grayscale"
+        )
+        X = np.array([item[0] for item in dataset])
+        X = X.reshape(X.shape[0], -1)  # Reshape to (n_samples, n_features)
+        y = np.array([item[1] for item in dataset])
+        n_clusters = len(np.unique(y))  # 93
     elif args.dataset == "20-newsgroups":
         from sklearn.feature_extraction.text import TfidfVectorizer
 

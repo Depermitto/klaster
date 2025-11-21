@@ -39,11 +39,8 @@ struct Decoder<B: Backend> {
 #[derive(Config, Debug)]
 pub struct AutoencoderConfig {
     pub latent_dim: usize,
-    #[config(default = "[1, 32, 64]")]
+    pub input_dims: [usize; 2],
     pub channels: [usize; 3],
-    #[config(default = "[7, 7]")]
-    pub feature_map_size: [usize; 2],
-    #[config(default = "8")]
     pub groups: usize,
     #[config(default = "0.01")]
     pub leaky_relu_slope: f64,
@@ -58,9 +55,17 @@ pub struct AutoencoderConfig {
 }
 
 impl AutoencoderConfig {
+    const LAYER_LEN: usize = 2;
+
     pub fn init<B: Backend>(&self, device: &B::Device) -> Autoencoder<B> {
         let [input_ch, hidden_ch, output_ch] = self.channels;
-        let [h, w] = self.feature_map_size;
+
+        // CNN final layer output sizes
+        let [mut h, mut w] = self.input_dims;
+        for _ in 0..Self::LAYER_LEN {
+            h = dbg!((h - self.kernel_size[0] + 2 * self.padding[0]) / self.stride[0] + 1);
+            w = dbg!((w - self.kernel_size[1] + 2 * self.padding[1]) / self.stride[1] + 1);
+        }
         let flat_features = output_ch * h * w;
 
         Autoencoder {

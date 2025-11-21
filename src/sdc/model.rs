@@ -54,16 +54,12 @@ impl SDCConfig {
 }
 
 impl<B: Backend> SDC<B> {
-    pub fn forward(&self, x: Tensor<B, 4>) -> (Tensor<B, 4>, Tensor<B, 2>) {
-        self.autoencoder.forward(x)
-    }
-
     pub fn forward_clustering(
         &self,
         x: Tensor<B, 4>,
         targets: Tensor<B, 1, Int>,
     ) -> ClusteringOutput<B> {
-        let (recon, embeddings) = self.forward(x.clone());
+        let (recon, embeddings) = self.autoencoder.forward(x.clone());
 
         let loss = ClusteringLoss::new().forward::<B, 4>(
             x,

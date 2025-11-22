@@ -18,8 +18,7 @@ impl ClusteringLoss {
         gamma: f64,
         alpha: f64,
     ) -> Tensor<B, 1> {
-        // Focal MSE (downright small errors, common in sparse data)
-        let mse_loss = MseLoss::new().forward(logits.clone(), targets.clone(), Reduction::Mean);
+        let mse_loss = MseLoss::new().forward(logits.clone(), targets.clone(), Reduction::Auto);
         let focal_weight = (logits - targets).abs().powf_scalar(gamma);
         let focal_loss = focal_weight.mul(mse_loss.unsqueeze());
         let recon_loss = focal_loss.mean();

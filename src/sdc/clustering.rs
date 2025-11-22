@@ -1,5 +1,5 @@
 use crate::sdc::cdist::pairwise_distances_squared;
-use crate::sdc::metric::ClusteringInput;
+use crate::sdc::metric::ClusteringMetricInput;
 use burn::prelude::{Backend, Int, Tensor};
 use burn::tensor::Transaction;
 use burn::train::metric::{Adaptor, ItemLazy, LossInput};
@@ -38,11 +38,11 @@ impl<B: Backend> ItemLazy for ClusteringOutput<B> {
     }
 }
 
-impl<B: Backend> Adaptor<ClusteringInput<B>> for ClusteringOutput<B> {
-    fn adapt(&self) -> ClusteringInput<B> {
+impl<B: Backend> Adaptor<ClusteringMetricInput<B>> for ClusteringOutput<B> {
+    fn adapt(&self) -> ClusteringMetricInput<B> {
         let dist = pairwise_distances_squared(self.embeddings.clone(), self.centroids.clone());
-        let q: Tensor<B, 2> = 1.0 / (1.0 + dist);
-        ClusteringInput::new(q, self.targets.clone())
+        let q = 1.0 / (1.0 + dist);
+        ClusteringMetricInput::new(q, self.targets.clone())
     }
 }
 

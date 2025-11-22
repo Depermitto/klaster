@@ -1,4 +1,4 @@
-use crate::sdc::metric::ClusteringInput;
+use crate::sdc::metric::ClusteringMetricInput;
 use burn::prelude::*;
 use burn::train::metric::state::{FormatOptions, NumericMetricState};
 use burn::train::metric::{Metric, MetricEntry, MetricMetadata, Numeric};
@@ -16,7 +16,7 @@ impl<B: Backend> ARIMetric<B> {
     }
 }
 
-fn ari_score<T>(y_pred: &[T], y_true: &[T]) -> f64
+pub fn ari_score<T>(y_pred: &[T], y_true: &[T]) -> f64
 where
     T: std::cmp::Eq + std::hash::Hash + Copy,
 {
@@ -76,7 +76,7 @@ where
 }
 
 impl<B: Backend> Metric for ARIMetric<B> {
-    type Input = ClusteringInput<B>;
+    type Input = ClusteringMetricInput<B>;
 
     fn name(&self) -> String {
         "ARI".to_string()

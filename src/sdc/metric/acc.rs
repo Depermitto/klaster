@@ -1,4 +1,4 @@
-use crate::sdc::metric::ClusteringInput;
+use crate::sdc::metric::ClusteringMetricInput;
 use burn::prelude::*;
 use burn::train::metric::state::{FormatOptions, NumericMetricState};
 use burn::train::metric::{Metric, MetricEntry, MetricMetadata, Numeric};
@@ -16,13 +16,10 @@ impl<B: Backend> ClusteringAccuracyMetric<B> {
     }
 }
 
-fn acc_score<T>(y_pred: &[T], y_true: &[T]) -> f64
+pub fn align_clusters<T>(y_pred: &[T], y_true: &[T]) -> Vec<T>
 where
     T: std::cmp::Eq + std::hash::Hash + Copy,
 {
-    assert_eq!(y_pred.len(), y_true.len());
-    let n = y_true.len();
-
     let mut cluster_to_labels: HashMap<_, Vec<_>> = HashMap::new();
     for (&pred, &true_label) in y_pred.iter().zip(y_true.iter()) {
         cluster_to_labels.entry(pred).or_default().push(true_label);
@@ -34,7 +31,7 @@ where
     }
 
     let Some((&most_common_global_label, _)) = global_counts.iter().max_by_key(|e| e.1) else {
-        return 0.0;
+        return vec![];
     };
 
     let mut label_mapping: HashMap<_, _> = HashMap::new();
@@ -56,6 +53,17 @@ where
         .map(|pred| *label_mapping.get(pred).unwrap_or(&most_common_global_label))
         .collect();
 
+    aligned_preds
+}
+
+pub fn acc_score<T>(y_pred: &[T], y_true: &[T]) -> f64
+where
+    T: std::cmp::Eq + std::hash::Hash + Copy,
+{
+    assert_eq!(y_pred.len(), y_true.len());
+    let n = y_true.len();
+
+    let aligned_preds = align_clusters(y_pred, y_true);
     let mut correct = 0usize;
     for (pred, true_label) in aligned_preds.iter().zip(y_true.iter()) {
         if pred == true_label {
@@ -66,7 +74,7 @@ where
 }
 
 impl<B: Backend> Metric for ClusteringAccuracyMetric<B> {
-    type Input = ClusteringInput<B>;
+    type Input = ClusteringMetricInput<B>;
 
     fn name(&self) -> String {
         "Accuracy".to_string()

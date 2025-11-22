@@ -42,7 +42,7 @@ fn create_artifact_dir(artifact_dir: &str) {
 pub fn train<B: AutodiffBackend>(
     artifact_dir: &str,
     config: TrainingConfig,
-    dataset: Dataset,
+    dataset: &Dataset,
     device: &B::Device,
 ) {
     create_artifact_dir(artifact_dir);

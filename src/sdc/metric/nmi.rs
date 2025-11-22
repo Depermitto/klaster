@@ -1,4 +1,4 @@
-use crate::sdc::metric::ClusteringInput;
+use crate::sdc::metric::ClusteringMetricInput;
 use burn::prelude::*;
 use burn::train::metric::state::{FormatOptions, NumericMetricState};
 use burn::train::metric::{Metric, MetricEntry, MetricMetadata, Numeric};
@@ -16,7 +16,7 @@ impl<B: Backend> NMIMetric<B> {
     }
 }
 
-fn nmi_score<T>(y_pred: &[T], y_true: &[T]) -> f64
+pub fn nmi_score<T>(y_pred: &[T], y_true: &[T]) -> f64
 where
     T: std::cmp::Eq + std::hash::Hash + Copy,
 {
@@ -67,7 +67,7 @@ where
 }
 
 impl<B: Backend> Metric for NMIMetric<B> {
-    type Input = ClusteringInput<B>;
+    type Input = ClusteringMetricInput<B>;
 
     fn name(&self) -> String {
         "NMI".to_string()

@@ -9,8 +9,8 @@ use burn::train::{TrainOutput, TrainStep, ValidStep};
 
 #[derive(Module, Debug)]
 pub struct SDC<B: Backend> {
-    autoencoder: Autoencoder<B>,
-    centroids: Tensor<B, 2>,
+    pub autoencoder: Autoencoder<B>,
+    pub centroids: Tensor<B, 2>,
     alpha: f64,
     gamma: f64,
 }
@@ -26,6 +26,7 @@ pub struct SDCConfig {
 }
 
 pub enum Centroids<B: Backend> {
+    Empty,
     Random,
     Initialized(Tensor<B, 2>),
 }
@@ -40,6 +41,7 @@ impl SDCConfig {
         SDC {
             autoencoder,
             centroids: match centroids {
+                Centroids::Empty => Tensor::zeros([self.n_clusters, self.latent_dim], device),
                 Centroids::Random => Tensor::random(
                     [self.n_clusters, self.latent_dim],
                     Distribution::Normal(0.0, 0.04),

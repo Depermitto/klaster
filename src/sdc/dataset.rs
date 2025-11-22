@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use burn::data::dataloader::batcher::Batcher;
 use burn::prelude::{Backend, ElementConversion, Int, Tensor, TensorData};
 use derive_new::new;
@@ -7,7 +9,54 @@ use serde::{Deserialize, Serialize};
 pub struct Dataset {
     train_split: DatasetSplit,
     test_split: DatasetSplit,
-    item_dims: [usize; 2],
+    pub item_dims: [usize; 2],
+}
+
+impl Dataset {
+    pub fn unipen(unipen_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
+        let mut records = Vec::new();
+        let mut targets = Vec::new();
+
+        for entry in walkdir::WalkDir::new(unipen_path)
+            .into_iter()
+            .filter_map(|e| e.ok())
+        {
+            let path = entry.path();
+            if path.is_file()
+                && let Some(label) = path
+                    .parent()
+                    .and_then(|parent| parent.file_name())
+                    .and_then(|label_str| label_str.to_str().and_then(|s| s.parse::<usize>().ok()))
+            {
+                let img = image::ImageReader::open(path)?.decode()?.to_luma8();
+                let img_vec = img.into_raw();
+                records.extend(img_vec);
+                targets.push(label as u8);
+            }
+        }
+
+        Ok(Self {
+            train_split: DatasetSplit::new(records, targets),
+            test_split: DatasetSplit::empty(),
+            item_dims: [64, 64],
+        })
+    }
+
+    pub fn mnist(mnist_path: &str) -> Self {
+        let mnist::Mnist {
+            trn_img,
+            trn_lbl,
+            tst_img,
+            tst_lbl,
+            ..
+        } = mnist::MnistBuilder::new().base_path(mnist_path).finalize();
+
+        Self {
+            train_split: DatasetSplit::new(trn_img, trn_lbl),
+            test_split: DatasetSplit::new(tst_img, tst_lbl),
+            item_dims: [28, 28],
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -46,12 +95,16 @@ impl Dataset {
         items
     }
 
-    pub(crate) fn train_items(&self) -> Vec<ItemRaw> {
+    pub fn train_items(&self) -> Vec<ItemRaw> {
         Self::items(&self.train_split, self.item_dims)
     }
 
-    pub(crate) fn test_items(&self) -> Vec<ItemRaw> {
+    pub fn test_items(&self) -> Vec<ItemRaw> {
         Self::items(&self.test_split, self.item_dims)
+    }
+
+    pub fn n_classes(&self) -> usize {
+        self.train_split.labels.iter().collect::<HashSet<_>>().len()
     }
 
     #[must_use]
@@ -85,13 +138,13 @@ pub struct DatasetBatcher {
 }
 
 #[derive(new, Deserialize, Serialize, Debug, Clone)]
-pub(crate) struct ItemRaw {
-    image_bytes: Vec<u8>,
-    label: u8,
+pub struct ItemRaw {
+    pub image_bytes: Vec<u8>,
+    pub label: u8,
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct Batch<B: Backend> {
+pub struct Batch<B: Backend> {
     pub images: Tensor<B, 4>,
     pub targets: Tensor<B, 1, Int>,
 }

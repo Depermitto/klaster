@@ -3,13 +3,14 @@
 
 use clap::{Arg, Command};
 use hdbscan::{Hdbscan, HdbscanHyperParams};
+use klaster::sdc::metric::*;
 use linfa::{
     Dataset,
     traits::{Fit, Predict, Transformer},
 };
 use linfa_datasets::generate;
 use linfa_preprocessing::linear_scaling::LinearScaler;
-use metrics::{benchmark_runtime, benefit_of_doubt_acc};
+use metrics::benchmark_runtime;
 use ndarray::{Array1, Array2, s};
 use ndarray_rand::rand::{Rng, thread_rng};
 use std::{collections::HashSet, fs, path::Path};
@@ -168,14 +169,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .base_path(format!("{DATASET_DIR}/MNIST/raw/").as_str())
                 .finalize();
 
-            const SUBSET: usize = 10_000;
-            let trn_img = trn_img[..SUBSET * 28 * 28].to_vec();
-            let trn_lbl = trn_lbl[..SUBSET].to_vec();
+            // const SUBSET: usize = 10_000;
+            // let trn_img = trn_img[..SUBSET * 28 * 28].to_vec();
+            // let trn_lbl = trn_lbl[..SUBSET].to_vec();
 
-            let train_images = Array2::from_shape_vec((SUBSET, 28 * 28), trn_img)
+            let train_images = Array2::from_shape_vec((60_000, 28 * 28), trn_img)
                 .expect("MNIST bad image conversion")
                 .mapv(|x| x as f64);
-            let y_true = ndarray::Array1::from_shape_vec(SUBSET, trn_lbl)
+            let y_true = ndarray::Array1::from_shape_vec(60_000, trn_lbl)
                 .expect("MNIST bad label conversion");
             let train_labels = y_true.mapv(|x| x as usize);
             let dataset = Dataset::new(train_images, train_labels);
@@ -248,7 +249,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .expect("KMeans bad fit");
                 let y_pred = model.predict(&dataset).to_vec();
 
-                vec![benefit_of_doubt_acc(&y_true, &y_pred)]
+                vec![
+                    acc_score(&y_pred, &y_true),
+                    ari_score(&y_pred, &y_true),
+                    nmi_score(&y_pred, &y_true),
+                ]
             })
         }
         "kmeans" => {
@@ -259,7 +264,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .fit_predict(dataset.records())
                     .to_vec();
 
-                vec![benefit_of_doubt_acc(&y_true, &y_pred)]
+                vec![
+                    acc_score(&y_pred, &y_true),
+                    ari_score(&y_pred, &y_true),
+                    nmi_score(&y_pred, &y_true),
+                ]
             })
         }
         "hdbscan-ref" => {
@@ -281,13 +290,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .outer_iter()
                 .map(|row| row.to_vec())
                 .collect();
-            let y_true = dataset.targets().to_vec();
+            let y_true = dataset.targets().map(|&x| x as i32).to_vec();
 
             benchmark_runtime(runs, || {
                 let model = Hdbscan::new(&data, config.clone());
                 let y_pred: Vec<i32> = model.cluster().expect("HDBSCAN bad fit").to_vec();
 
-                vec![benefit_of_doubt_acc(&y_true, &y_pred)]
+                vec![
+                    acc_score(&y_pred, &y_true),
+                    ari_score(&y_pred, &y_true),
+                    nmi_score(&y_pred, &y_true),
+                ]
             })
         }
         "hdbscan" => unimplemented!(),

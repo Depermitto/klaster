@@ -78,7 +78,7 @@ def benchmark_python(X, y, algorithm, runs, **params):
                 end_time - start_time,
                 benefit_of_doubt_acc(y, cluster_labels),
                 metrics.adjusted_rand_score(y, cluster_labels),
-                metrics.adjusted_mutual_info_score(y, cluster_labels),
+                metrics.mutual_info_score(y, cluster_labels),
             ]
         )
 
@@ -88,7 +88,7 @@ def benchmark_python(X, y, algorithm, runs, **params):
         "time": mean_results[0],
         "accuracy": mean_results[1],
         "ARI": mean_results[2],
-        "AMI": mean_results[3],
+        "NMI": mean_results[3],
     }
 
     os.makedirs("output", exist_ok=True)

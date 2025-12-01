@@ -1,3 +1,6 @@
+// Copyright (C) 2025 Piotr Jabłoński
+// Extended copyright information can be found in the LICENSE file.
+
 use crate::sdc::cdist::pairwise_distances_squared;
 use burn::{
     nn::loss::{MseLoss, Reduction},

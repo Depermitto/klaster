@@ -1,3 +1,11 @@
+// Copyright (C) 2025 Piotr Jabłoński
+// Extended copyright information can be found in the LICENSE file.
+
+//! Convolutional autoencoder configuration and architecture.
+//!
+//! This module provides [`Autoencoder`] and [`AutoencoderConfig`] structs, as well as
+//! [`burn::prelude::Backend`] implementation.
+
 use crate::sdc::dataset::Batch;
 use burn::nn::loss::{MseLoss, Reduction};
 use burn::tensor::backend::AutodiffBackend;
@@ -36,6 +44,24 @@ struct Decoder<B: Backend> {
     sigmoid: Sigmoid,
 }
 
+/// Configuration for the Autoencoder model.
+///
+/// # Params
+/// - `latent_dim`: Dimensionality of the latent space.
+/// - `input_dims`: Dimensions of the input image (height, width).
+/// - `channels`: Number of channels for the convolutional layers (input, hidden, output).
+/// - `groups`: Number of groups for group normalization.
+/// - `leaky_relu_slope`: Negative slope of the Leaky ReLU activation function.
+/// - `kernel_size`: Size of the convolutional kernel.
+/// - `stride`: Stride of the convolution.
+/// - `padding`: Padding for the convolution.
+/// - `output_padding`: Output padding for the transposed convolution.
+///
+/// # Note
+/// Default values should work fine for the majority of simple image datasets (e.g. MNIST).
+///
+/// # See also
+/// [`AutoencoderConfig::init`]
 #[derive(Config, Debug)]
 pub struct AutoencoderConfig {
     pub latent_dim: usize,

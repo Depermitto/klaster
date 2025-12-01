@@ -109,7 +109,7 @@ if __name__ == "__main__":
         from unipen_dataset import UnipenDataset
 
         dataset = UnipenDataset(
-            root_dir="/home/dev-main/klaster/datasets/UNIPEN-64x64-grayscale"
+            root_dir="datasets/UNIPEN-64x64-grayscale"
         )
         X = np.array([item[0] for item in dataset])
         X = X.reshape(X.shape[0], -1)  # Reshape to (n_samples, n_features)

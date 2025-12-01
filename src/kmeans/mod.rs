@@ -17,15 +17,14 @@ pub use crate::kmeans::init::KMeansInit;
 ///
 /// # Overview
 /// Performs K-Means clustering on input data, grouping samples into `k_clusters` clusters.
-/// The algorithm supports customization of the initialization method, distance metric,
-/// convergence criteria, and maximum iteration limit.
+/// The algorithm supports customization of the initialization method, convergence criteria,
+/// and maximum iteration limit.
 ///
 /// # Params
 /// - `k_clusters`: Number of clusters to form (must be ≥ 1),
 /// - `max_iter`: Maximum iterations of the algorithm (must be ≥ 1),
 /// - `tolerance`: Relative tolerance for convergence (must be ≥ 0.0),
 /// - `init_fn`: Cluster center initialization strategy,
-/// - `dist_fn`: Distance metric for assignment and convergence.
 ///
 /// # Panics
 /// Can occur during initialization if:

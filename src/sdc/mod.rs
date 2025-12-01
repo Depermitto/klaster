@@ -1,3 +1,11 @@
+// Copyright (C) 2025 Piotr Jabłoński
+// Extended copyright information can be found in the LICENSE file.
+
+//! `SDC` (Symbol Deep Clustering) model and components.
+//!
+//! This module provides the main [`SDCConfig`] model, as well as supporting types for
+//! autoencoder configuration [`AutoencoderConfig`], training [`TrainingConfig`], and dataset handling [`Dataset`].
+
 mod autoencoder;
 mod cdist;
 mod clustering;

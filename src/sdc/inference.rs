@@ -1,3 +1,6 @@
+// Copyright (C) 2025 Piotr Jabłoński
+// Extended copyright information can be found in the LICENSE file.
+
 use burn::{
     config::Config,
     data::dataloader::batcher::Batcher,
@@ -14,6 +17,17 @@ use crate::sdc::{
     model::Centroids,
 };
 
+/// Perform inference with a trained SDC model.
+///
+/// # Arguments
+///
+/// * `artifact_dir`: Directory where the trained model is saved.
+/// * `dataset`: Dataset to use for inference.
+/// * `device`: Device to use for inference.
+/// * `items`: Items to perform inference on.
+///
+/// # See also
+/// [`crate::sdc::train`]
 pub fn infer<B: Backend>(
     artifact_dir: &str,
     dataset: &Dataset,

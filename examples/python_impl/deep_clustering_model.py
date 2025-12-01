@@ -1,3 +1,6 @@
+# Copyright (C) 2025 Piotr Jabłoński
+# Extended copyright information can be found in the LICENSE file.
+
 from typing import final, override
 
 import numpy as np
@@ -107,7 +110,7 @@ class Datasets:
         X = []
         y = []
         for i in map(ord, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"):
-            path_img = f"/mnt/storage/datasets/UNIPEN-64x64-grayscale/{i}/"
+            path_img = f"datasets/UNIPEN-64x64-grayscale/{i}/"
             for file_name in [
                 f for f in listdir(path_img) if isfile(join(path_img, f))
             ]:

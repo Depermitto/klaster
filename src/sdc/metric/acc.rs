@@ -1,3 +1,6 @@
+// Copyright (C) 2025 Piotr Jabłoński
+// Extended copyright information can be found in the LICENSE file.
+
 use crate::sdc::metric::ClusteringMetricInput;
 use burn::prelude::*;
 use burn::train::metric::state::{FormatOptions, NumericMetricState};
@@ -62,6 +65,9 @@ where
 {
     assert_eq!(y_pred.len(), y_true.len());
     let n = y_true.len();
+    if n == 0 {
+        return 0.0;
+    }
 
     let aligned_preds = align_clusters(y_pred, y_true);
     let mut correct = 0usize;

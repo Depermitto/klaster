@@ -1,3 +1,6 @@
+// Copyright (C) 2025 Piotr Jabłoński
+// Extended copyright information can be found in the LICENSE file.
+
 use std::collections::HashSet;
 
 use burn::data::dataloader::batcher::Batcher;
@@ -5,6 +8,16 @@ use burn::prelude::{Backend, ElementConversion, Int, Tensor, TensorData};
 use derive_new::new;
 use serde::{Deserialize, Serialize};
 
+/// Dataset for training and testing.
+///
+/// # Fields
+///
+/// * `train_split`: The training data split.
+/// * `test_split`: The testing data split.
+/// * `item_dims`: The dimensions of each item in the dataset.
+///
+/// # See also
+/// [`Dataset::mnist`], [`Dataset::unipen`]
 #[derive(new, Debug, Clone)]
 pub struct Dataset {
     train_split: DatasetSplit,
@@ -13,6 +26,8 @@ pub struct Dataset {
 }
 
 impl Dataset {
+    /// Reads the [unipen](https://github.com/sueiras/handwritting_characters_database) dataset.
+    /// It is necessary to download it locally and provide the path to its root directory.
     pub fn unipen(unipen_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let mut records = Vec::new();
         let mut targets = Vec::new();
@@ -42,6 +57,7 @@ impl Dataset {
         })
     }
 
+    /// Reads the Mnist dataset. It is necessary to download it locally and provide the path to its root directory.
     pub fn mnist(mnist_path: &str) -> Self {
         let mnist::Mnist {
             trn_img,
@@ -59,6 +75,11 @@ impl Dataset {
     }
 }
 
+/// Container for raw data, dimensions for `labels` and `images` have to match up eventually
+/// or else [`crate::sdc::train`] shall [`std::panic!`].
+///
+/// # See also
+/// [`DatasetSplit::new`], [`DatasetSplit::empty`]
 #[derive(Debug, Clone)]
 pub struct DatasetSplit {
     images: Vec<u8>,
@@ -66,6 +87,7 @@ pub struct DatasetSplit {
 }
 
 impl DatasetSplit {
+    /// Create a new dataset.
     pub fn new(images: impl Into<Vec<u8>>, labels: impl Into<Vec<u8>>) -> Self {
         Self {
             images: images.into(),
@@ -73,6 +95,7 @@ impl DatasetSplit {
         }
     }
 
+    /// Create empty dataset.
     pub fn empty() -> Self {
         Self {
             images: Vec::new(),
@@ -95,18 +118,22 @@ impl Dataset {
         items
     }
 
+    /// Get items used in training.
     pub fn train_items(&self) -> Vec<ItemRaw> {
         Self::items(&self.train_split, self.item_dims)
     }
 
+    /// Get items used in validation.
     pub fn test_items(&self) -> Vec<ItemRaw> {
         Self::items(&self.test_split, self.item_dims)
     }
 
+    /// Get amount of unique classes in [`DatasetSplit::labels`].
     pub fn n_classes(&self) -> usize {
         self.train_split.labels.iter().collect::<HashSet<_>>().len()
     }
 
+    /// Get this dataset's [`DatasetBatcher`].
     #[must_use]
     pub fn batcher(&self) -> DatasetBatcher {
         let data = &self.train_split.images;
@@ -130,6 +157,8 @@ impl Dataset {
     }
 }
 
+/// Convert [`ItemRaw`]s to a [`Batch`]. This simplifies to converting raw data from CPU+RAM to
+/// a proper format that the [`burn::prelude::Device`] understands (usually a Tensor on a GPU+VRAM).
 #[derive(new, Debug, Clone, Copy)]
 pub struct DatasetBatcher {
     dims: [usize; 2],
@@ -137,12 +166,14 @@ pub struct DatasetBatcher {
     std: f32,
 }
 
+/// Single raw item.
 #[derive(new, Deserialize, Serialize, Debug, Clone)]
 pub struct ItemRaw {
     pub image_bytes: Vec<u8>,
     pub label: u8,
 }
 
+/// Batch of data on a [`burn::prelude::Device`].
 #[derive(Clone, Debug)]
 pub struct Batch<B: Backend> {
     pub images: Tensor<B, 4>,

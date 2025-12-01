@@ -1,3 +1,6 @@
+// Copyright (C) 2025 Piotr Jabłoński
+// Extended copyright information can be found in the LICENSE file.
+
 use burn::optim::AdamConfig;
 use klaster::sdc::*;
 use rand::{rng, seq::SliceRandom};
@@ -5,10 +8,10 @@ use rand::{rng, seq::SliceRandom};
 const DATASET_DIR: &str = "datasets";
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // let dataset = Dataset::unipen(&format!("{DATASET_DIR}/UNIPEN-64x64-grayscale"))?;
-    // let latent_dim = 128;
-    let dataset = Dataset::mnist(&format!("{DATASET_DIR}/MNIST/raw"));
-    let latent_dim = 10;
+    let dataset = Dataset::unipen(&format!("{DATASET_DIR}/UNIPEN-64x64-grayscale"))?;
+    let latent_dim = 128;
+    // let dataset = Dataset::mnist(&format!("{DATASET_DIR}/MNIST/raw"));
+    // let latent_dim = 10;
     let artifact_dir = "/tmp/sdc";
     let device = &Default::default();
     train::<burn::backend::Autodiff<burn::backend::Wgpu>>(

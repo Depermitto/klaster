@@ -1,3 +1,6 @@
+// Copyright (C) 2025 Piotr Jabłoński
+// Extended copyright information can be found in the LICENSE file.
+
 use crate::sdc::metric::ClusteringMetricInput;
 use burn::prelude::*;
 use burn::train::metric::state::{FormatOptions, NumericMetricState};

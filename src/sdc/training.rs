@@ -1,3 +1,6 @@
+// Copyright (C) 2025 Piotr Jabłoński
+// Extended copyright information can be found in the LICENSE file.
+
 use crate::KMeans;
 use crate::sdc::dataset::Batch;
 use crate::sdc::metric::{ARIMetric, ClusteringAccuracyMetric, NMIMetric};
@@ -14,6 +17,21 @@ use burn::{
 };
 use ndarray::Array2;
 
+/// Configuration for training the SDC model.
+///
+/// # Params
+/// - `model`: SDC model configuration.
+/// - `autoencoder`: Autoencoder model configuration.
+/// - `optimizer`: Optimizer configuration.
+/// - `num_epochs`: Number of training epochs.
+/// - `batch_size`: Batch size for training.
+/// - `num_workers`: Number of workers for the data loader.
+/// - `seed`: Random seed.
+/// - `lr`: Learning rate.
+/// - `pretraining_period`: Fraction of epochs for pretraining the autoencoder.
+///
+/// # See also
+/// [`crate::sdc::train`], [`crate::sdc::infer`]
 #[derive(Config)]
 pub struct TrainingConfig {
     pub model: SDCConfig,
@@ -39,6 +57,17 @@ fn create_artifact_dir(artifact_dir: &str) {
     std::fs::create_dir_all(artifact_dir).ok();
 }
 
+/// Train the SDC model.
+///
+/// # Arguments
+///
+/// * `artifact_dir`: Directory to save model artifacts.
+/// * `config`: Training configuration.
+/// * `dataset`: Dataset to use for training.
+/// * `device`: Device to use for training.
+///
+/// # See also
+/// [`TrainingConfig`], [`crate::sdc::infer`]
 pub fn train<B: AutodiffBackend>(
     artifact_dir: &str,
     config: TrainingConfig,

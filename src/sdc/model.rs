@@ -1,3 +1,6 @@
+// Copyright (C) 2025 Piotr Jabłoński
+// Extended copyright information can be found in the LICENSE file.
+
 use crate::sdc::autoencoder::Autoencoder;
 use crate::sdc::clustering::ClusteringOutput;
 use crate::sdc::dataset::Batch;
@@ -15,6 +18,16 @@ pub struct SDC<B: Backend> {
     gamma: f64,
 }
 
+/// Configuration for the SDC model.
+///
+/// # Params
+/// - `n_clusters`: Number of clusters to form.
+/// - `latent_dim`: Dimensionality of the latent space.
+/// - `alpha`: Weighting factor for the clustering loss.
+/// - `gamma`: Weighting factor for the reconstruction loss.
+///
+/// # See also
+/// [`SDCConfig::init`]
 #[derive(Config, Debug)]
 pub struct SDCConfig {
     pub n_clusters: usize,

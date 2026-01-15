@@ -3,16 +3,19 @@
 
 import argparse
 import json
+from pathlib import Path
 
 import numpy as np
+import pandas as pd
 from helper import benchmark_python
 from sklearn.datasets import (
     fetch_20newsgroups,
     fetch_openml,
     load_breast_cancer,
-    load_wine,
     make_blobs,
 )
+
+DATASET_DIR = "datasets"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -96,20 +99,22 @@ if __name__ == "__main__":
         X, y = load_breast_cancer(return_X_y=True)
         n_clusters = 2
     elif args.dataset == "wine":
-        X, y = load_wine(return_X_y=True)
-        print(np.unique(y))
-        n_clusters = 3
+        df = pd.read_csv(f"{DATASET_DIR}/winequality-red.csv")
+        X = df.iloc[:, :-2].values
+        y = df.iloc[:, 11].values
+        n_clusters = 6
     elif args.dataset == "mnist":
         X, y = fetch_openml("mnist_784", return_X_y=True, as_frame=False)
-        SUBSET = 10_000
-        X = X[:SUBSET]
-        y = y[:SUBSET].astype(int)
+        # SUBSET = 10_000
+        # X = X[:SUBSET]
+        y = y.astype(int)
+        # y = y[:SUBSET].astype(int)
         n_clusters = 10
     elif args.dataset == "unipen":
         from unipen_dataset import UnipenDataset
 
         dataset = UnipenDataset(
-            root_dir="datasets/UNIPEN-64x64-grayscale"
+            root_dir=f"{DATASET_DIR}/UNIPEN-64x64-grayscale"
         )
         X = np.array([item[0] for item in dataset])
         X = X.reshape(X.shape[0], -1)  # Reshape to (n_samples, n_features)

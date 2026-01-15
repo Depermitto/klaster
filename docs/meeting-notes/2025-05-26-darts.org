@@ -56,5 +56,5 @@
     - pulpity analityczne
     - używają do porównywania modeli
 
-** TODO Na koniec
+** Na koniec
    Feedback, co można by dodać

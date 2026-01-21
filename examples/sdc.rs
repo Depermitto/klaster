@@ -2,19 +2,44 @@
 // Extended copyright information can be found in the LICENSE file.
 
 use burn::optim::AdamConfig;
+use clap::{Arg, Command};
 use klaster::sdc::*;
 use rand::{rng, seq::SliceRandom};
 
-const DATASET_DIR: &str = "datasets";
-
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let dataset = Dataset::unipen(&format!("{DATASET_DIR}/UNIPEN-64x64-grayscale"))?;
-    let latent_dim = 128;
-    // let dataset = Dataset::mnist(&format!("{DATASET_DIR}/MNIST/raw"));
-    // let latent_dim = 10;
+    let matches = Command::new("sdc")
+        .about("Train the SDC model and run inference for test data")
+        .arg(
+            Arg::new("dataset")
+                .long("dataset")
+                .required(true)
+                .value_parser(["mnist", "unipen"])
+                .help("Dataset to use"),
+        )
+        .arg(
+            Arg::new("dataset_path")
+                .long("dataset-path")
+                .required(true)
+                .help("Dataset path to find the dataset in"),
+        )
+        .get_matches();
+
+    let dataset_name = matches
+        .get_one::<String>("dataset")
+        .expect("dataset argument missing")
+        .as_str();
+    let dataset_path = matches
+        .get_one::<String>("dataset_path")
+        .expect("dataset-path argument missing");
+
+    let (dataset, latent_dim) = match dataset_name {
+        "mnist" => (Dataset::mnist(dataset_path), 10),
+        "unipen" => (Dataset::unipen(dataset_path)?, 128),
+        _ => unreachable!(),
+    };
     let artifact_dir = "/tmp/sdc";
     let device = &Default::default();
-    train::<burn::backend::Autodiff<burn::backend::Wgpu>>(
+    train::<burn::backend::Autodiff<burn::backend::Vulkan>>(
         artifact_dir,
         TrainingConfig::new(
             SDCConfig::new(dbg!(dataset.n_classes()), latent_dim).with_alpha(1.05),
@@ -29,9 +54,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let mut rng = rng();
-    let mut test_items = dataset.test_items();
-    test_items.shuffle(&mut rng);
-    infer::<burn::backend::Wgpu>(artifact_dir, &dataset, device, test_items[0..256].to_vec());
+    let mut items = dataset.test_items();
+    if items.is_empty() {
+        items = dataset.train_items();
+    }
+    items.shuffle(&mut rng);
+    let n = std::cmp::min(256, items.len());
+    infer::<burn::backend::Vulkan>(artifact_dir, &dataset, device, items[0..n].to_vec());
 
     Ok(())
 }

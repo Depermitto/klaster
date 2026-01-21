@@ -17,8 +17,6 @@ use std::{collections::HashSet, fs, path::Path};
 
 mod metrics;
 
-const DATASET_DIR: &str = "datasets";
-
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = Command::new("Clustering Benchmark")
         .arg(
@@ -66,6 +64,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .help("Dataset to use"),
         )
         .arg(
+            Arg::new("dataset_path")
+                .long("dataset-path")
+                .required(true)
+                .help("Dataset path to find the dataset in"),
+        )
+        .arg(
             Arg::new("scaled")
                 .long("scaled")
                 .action(clap::ArgAction::SetTrue)
@@ -102,6 +106,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .get_one::<String>("dataset")
         .expect("dataset argument missing")
         .clone();
+    let dataset_path = matches
+        .get_one::<String>("dataset_path")
+        .expect("dataset-path argument missing")
+        .clone();
     let (n_clusters, mut dataset) = match dataset_name.as_str() {
         "synth" => {
             let blobs_samples = matches
@@ -134,8 +142,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             todo!("do something with {:?}", dataset);
         }
         "bcw" => {
-            let file =
-                fs::File::open(format!("{DATASET_DIR}/bcw.csv")).expect("BCW dataset not found");
+            let file = fs::File::open(dataset_path).expect("BCW dataset not found");
             let dataset = linfa_datasets::array_from_csv(file, true, b',').expect("bad csv file");
 
             let targets = dataset.column(1).to_owned();
@@ -146,8 +153,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             (2, dataset)
         }
         "wine" => {
-            let file = fs::File::open(format!("{DATASET_DIR}/winequality-red.csv"))
-                .expect("wine dataset not found");
+            let file = fs::File::open(dataset_path).expect("wine dataset not found");
             let dataset = linfa_datasets::array_from_csv(file, true, b',').expect("bad csv file");
 
             let targets = dataset.column(11).to_owned();
@@ -157,7 +163,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             );
             let y_true: Vec<usize> = targets.iter().map(|x| *x as usize).collect();
             let records = dataset.slice(s![.., ..-2]).to_owned();
-            println!("{:?}", records);
             let dataset = Dataset::new(records, y_true.into());
 
             (6, dataset)
@@ -166,7 +171,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mnist::Mnist {
                 trn_img, trn_lbl, ..
             } = mnist::MnistBuilder::new()
-                .base_path(format!("{DATASET_DIR}/MNIST/raw/").as_str())
+                .base_path(&dataset_path)
                 .finalize();
 
             // const SUBSET: usize = 10_000;
@@ -184,11 +189,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             (10, dataset)
         }
         "unipen" => {
-            let unipen_dir = format!("{DATASET_DIR}/UNIPEN-64x64-grayscale");
             let mut records = Vec::new();
             let mut targets = Vec::new();
 
-            for entry in walkdir::WalkDir::new(unipen_dir)
+            for entry in walkdir::WalkDir::new(dataset_path)
                 .into_iter()
                 .filter_map(|e| e.ok())
             {

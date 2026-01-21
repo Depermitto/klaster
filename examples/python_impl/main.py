@@ -15,8 +15,6 @@ from sklearn.datasets import (
     make_blobs,
 )
 
-DATASET_DIR = "datasets"
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -55,6 +53,12 @@ if __name__ == "__main__":
         choices=["synth", "bcw", "wine", "mnist", "20-newsgroups", "unipen"],
         required=True,
         help="Dataset to use",
+    )
+    parser.add_argument(
+        "--dataset-path",
+        type=str,
+        required=False,
+        help="Dataset path to find the dataset in",
     )
     parser.add_argument(
         "--scaled",
@@ -99,7 +103,9 @@ if __name__ == "__main__":
         X, y = load_breast_cancer(return_X_y=True)
         n_clusters = 2
     elif args.dataset == "wine":
-        df = pd.read_csv(f"{DATASET_DIR}/winequality-red.csv")
+        assert args.dataset_path
+
+        df = pd.read_csv(args.dataset_path)
         X = df.iloc[:, :-2].values
         y = df.iloc[:, 11].values
         n_clusters = 6
@@ -111,11 +117,11 @@ if __name__ == "__main__":
         # y = y[:SUBSET].astype(int)
         n_clusters = 10
     elif args.dataset == "unipen":
+        assert args.dataset_path
+
         from unipen_dataset import UnipenDataset
 
-        dataset = UnipenDataset(
-            root_dir=f"{DATASET_DIR}/UNIPEN-64x64-grayscale"
-        )
+        dataset = UnipenDataset(root_dir=args.dataset_path)
         X = np.array([item[0] for item in dataset])
         X = X.reshape(X.shape[0], -1)  # Reshape to (n_samples, n_features)
         y = np.array([item[1] for item in dataset])

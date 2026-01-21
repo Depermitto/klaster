@@ -81,8 +81,8 @@ impl<B: Backend> SDC<B> {
             recon,
             embeddings.clone(),
             self.centroids.clone(),
-            2.0,
-            1.0,
+            self.gamma,
+            self.alpha,
         );
 
         ClusteringOutput {

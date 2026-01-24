@@ -17,18 +17,22 @@ use burn::{
 };
 use ndarray::Array2;
 
-/// Configuration for training the SDC model.
+/// Configuration for training of an [`crate::SDC`] model.
+/// Controls model/optimizer settings and data loading parameters for training.
 ///
 /// # Params
-/// - `model`: SDC model configuration.
-/// - `autoencoder`: Autoencoder model configuration.
-/// - `optimizer`: Optimizer configuration.
-/// - `num_epochs`: Number of training epochs.
-/// - `batch_size`: Batch size for training.
-/// - `num_workers`: Number of workers for the data loader.
-/// - `seed`: Random seed.
-/// - `lr`: Learning rate.
+/// - `model`: SDC model configuration,
+/// - `autoencoder`: Autoencoder model configuration,
+/// - `optimizer`: Optimizer configuration,
+/// - `num_epochs`: Number of training epochs,
+/// - `batch_size`: Batch size for training,
+/// - `num_workers`: Number of workers for the data loader,
+/// - `seed`: Random seed,
+/// - `lr`: Learning rate,
 /// - `pretraining_period`: Fraction of epochs for pretraining the autoencoder.
+///
+/// # Note
+/// Default values are provided via the `Config` derive attributes.
 ///
 /// # See also
 /// [`crate::sdc::train`], [`crate::sdc::infer`]
@@ -61,9 +65,9 @@ fn create_artifact_dir(artifact_dir: &str) {
 ///
 /// # Arguments
 ///
-/// * `artifact_dir`: Directory to save model artifacts.
-/// * `config`: Training configuration.
-/// * `dataset`: Dataset to use for training.
+/// * `artifact_dir`: Directory to save model artifacts,
+/// * `config`: Training configuration,
+/// * `dataset`: Dataset to use for training,
 /// * `device`: Device to use for training.
 ///
 /// # See also

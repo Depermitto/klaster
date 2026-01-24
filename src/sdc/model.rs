@@ -10,6 +10,14 @@ use burn::tensor::Distribution;
 use burn::tensor::backend::AutodiffBackend;
 use burn::train::{TrainOutput, TrainStep, ValidStep};
 
+/// SDC model implementation combining an autoencoder and clustering head.
+///
+/// # Overview
+/// Holds the learnable components used during training and inference, including the
+/// convolutional autoencoder and cluster centroids.
+///
+/// # See also
+/// [`SDCConfig`], [`crate::Autoencoder`], [`crate::AutoencoderConfig`]
 #[derive(Module, Debug)]
 pub struct SDC<B: Backend> {
     pub autoencoder: Autoencoder<B>,
@@ -21,9 +29,9 @@ pub struct SDC<B: Backend> {
 /// Configuration for the SDC model.
 ///
 /// # Params
-/// - `n_clusters`: Number of clusters to form.
-/// - `latent_dim`: Dimensionality of the latent space.
-/// - `alpha`: Weighting factor for the clustering loss.
+/// - `n_clusters`: Number of clusters to form,
+/// - `latent_dim`: Dimensionality of the latent space,
+/// - `alpha`: Weighting factor for the clustering loss,
 /// - `gamma`: Weighting factor for the reconstruction loss.
 ///
 /// # See also
@@ -39,12 +47,21 @@ pub struct SDCConfig {
 }
 
 pub enum Centroids<B: Backend> {
+    /// Do not initialize centroids (zero-filled).
     Empty,
+    /// Initialize centroids from a random normal distribution.
     Random,
+    /// User-provided centroids.
     Initialized(Tensor<B, 2>),
 }
 
 impl SDCConfig {
+    /// Initialize an [`SDC`] model.
+    ///
+    /// # Params
+    /// - `autoencoder`: Pretrained autoencoder instance,
+    /// - `centroids`: Cluster centroids initialization strategy,
+    /// - `device`: Target device for model parameters.
     pub fn init<B: Backend>(
         &self,
         autoencoder: Autoencoder<B>,
@@ -69,6 +86,14 @@ impl SDCConfig {
 }
 
 impl<B: Backend> SDC<B> {
+    /// Forward pass used for clustering training and evaluation.
+    ///
+    /// # Data layout
+    /// - `x`: [batch, channels, height, width]
+    /// - `targets`: \[batch\]
+    ///
+    /// # See also
+    /// [`ClusteringOutput`]
     pub fn forward_clustering(
         &self,
         x: Tensor<B, 4>,

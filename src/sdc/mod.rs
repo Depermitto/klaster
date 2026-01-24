@@ -3,8 +3,9 @@
 
 //! `SDC` (Symbol Deep Clustering) model and components.
 //!
-//! This module provides the main [`SDCConfig`] model, as well as supporting types for
-//! autoencoder configuration [`AutoencoderConfig`], training [`TrainingConfig`], and dataset handling [`Dataset`].
+//! Provides the [`SDCConfig`] model configuration along with supporting types for
+//! autoencoder setup ([`AutoencoderConfig`]), training ([`TrainingConfig`]), inference
+//! ([`infer`]), metrics ([`metric`]), and dataset handling ([`dataset::Dataset`]).
 
 mod autoencoder;
 mod cdist;
@@ -16,7 +17,8 @@ pub mod metric;
 mod model;
 mod training;
 
-pub use autoencoder::AutoencoderConfig;
+pub use autoencoder::{Autoencoder, AutoencoderConfig};
+pub use clustering::ClusteringOutput;
 pub use inference::infer;
-pub use model::SDCConfig;
+pub use model::{SDC, SDCConfig};
 pub use training::{TrainingConfig, train};

@@ -9,6 +9,7 @@ use burn::train::metric::{Adaptor, ItemLazy, LossInput};
 use burn_ndarray::NdArray;
 use derive_new::new;
 
+/// Holds embeddings, centroids, loss, and targets for metric computation and logging.
 #[derive(new)]
 pub struct ClusteringOutput<B: Backend> {
     pub centroids: Tensor<B, 2>,

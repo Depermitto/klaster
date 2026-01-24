@@ -7,6 +7,7 @@ use burn::train::metric::state::{FormatOptions, NumericMetricState};
 use burn::train::metric::{Metric, MetricEntry, MetricMetadata, Numeric};
 use std::collections::HashMap;
 
+/// Clustering accuracy metric (alignment-aware).
 #[derive(Default)]
 pub(crate) struct ClusteringAccuracyMetric<B: Backend> {
     state: NumericMetricState,
@@ -59,6 +60,10 @@ where
     aligned_preds
 }
 
+/// Compute clustering accuracy after aligning clusters to labels.
+///
+/// # Returns
+/// Accuracy in [0, 1].
 pub fn acc_score<T>(y_pred: &[T], y_true: &[T]) -> f64
 where
     T: std::cmp::Eq + std::hash::Hash + Copy,

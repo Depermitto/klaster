@@ -3,8 +3,8 @@
 
 //! `KMeans` clustering algorithm and related components.
 //!
-//! This module provides the main [`KMeans`] model, as well as supporting types for
-//! centroid initialization ([`init`]) and distance metrics ([`dist`]).
+//! This module provides the main [`KMeans`] model, along with centroid initialization
+//! strategies ([`init`]) and distance utilities ([`dist`]).
 
 pub mod dist;
 pub mod init;
@@ -21,16 +21,31 @@ pub use crate::kmeans::init::KMeansInit;
 /// and maximum iteration limit.
 ///
 /// # Params
-/// - `k_clusters`: Number of clusters to form (must be ≥ 1),
-/// - `max_iter`: Maximum iterations of the algorithm (must be ≥ 1),
-/// - `tolerance`: Relative tolerance for convergence (must be ≥ 0.0),
+/// - `k_clusters`: Number of clusters to form (must be > 0),
+/// - `max_iter`: Maximum iterations of the algorithm (must be > 0),
+/// - `tolerance`: Absolute tolerance for convergence (must be > 0),
 /// - `init_fn`: Cluster center initialization strategy,
 ///
-/// # Panics
-/// Can occur during initialization if:
-/// - `k_clusters` is 0
-/// - `max_iter` is 0
-/// - `tolerance` is negative
+/// # Example
+/// ```rust
+/// let expected_centroids = ndarray::array![[-1., 1., 1.], [8., 2., 2.]];
+/// let k_clusters = expected_centroids.nrows();
+///
+/// let mut rng = ndarray_rand::rand::thread_rng();
+/// let data = linfa_datasets::generate::blobs(300, &expected_centroids, &mut rng);
+///
+/// let model_fitted = klaster::KMeans::new_plusplus(k_clusters)
+///     .with_max_iter(100)
+///     .with_tolerance(1e-6)
+///     .fit(&data);
+/// println!("{:?}", model_fitted.centroids());
+/// ```
+///
+/// # Note
+/// Initialization uses a thread-local RNG, so results can vary between runs.
+///
+/// # See also
+/// - [`KMeansFitted`] for prediction utilities on trained centroids
 pub struct KMeans {
     k_clusters: usize,
     max_iter: usize,
@@ -40,9 +55,12 @@ pub struct KMeans {
 
 impl KMeans {
     /// Create a new `KMeans` model with random (Forgy) initialization and Euclidean distance.
+    ///
+    /// # Panics
+    /// Can occur if `k_clusters` is 0.
     #[must_use]
     pub fn new_random(k_clusters: usize) -> Self {
-        assert_ne!(k_clusters, 0);
+        assert_ne!(k_clusters, 0, "k_clusters must be > 0");
         Self {
             k_clusters,
             init_fn: KMeansInit::Forgy,
@@ -52,9 +70,11 @@ impl KMeans {
     }
 
     /// Create a new `KMeans` model with `KMeans`++ initialization and Euclidean distance.
+    ///
+    /// # Panics
+    /// Can occur if `k_clusters` is 0.
     #[must_use]
     pub fn new_plusplus(k_clusters: usize) -> Self {
-        assert_ne!(k_clusters, 0);
         Self {
             init_fn: KMeansInit::PlusPlus,
             ..Self::new_random(k_clusters)
@@ -62,6 +82,9 @@ impl KMeans {
     }
 
     /// Set the convergence tolerance for the `KMeans` model.
+    ///
+    /// # Panics
+    /// Can occur if `tolerance` is not strictly positive.
     #[must_use]
     pub fn with_tolerance(mut self, tolerance: f64) -> Self {
         assert!(tolerance > 0.0);
@@ -70,6 +93,9 @@ impl KMeans {
     }
 
     /// Set the maximum number of iterations for the `KMeans` model.
+    ///
+    /// # Panics
+    /// Can occur if `max_iter` is 0.
     #[must_use]
     pub fn with_max_iter(mut self, max_iter: usize) -> Self {
         assert_ne!(max_iter, 0);
@@ -79,8 +105,15 @@ impl KMeans {
 
     /// Fit the `KMeans` model to the input data and return a fitted model.
     ///
+    /// # Data layout
+    /// - Rows: samples / k_clusters
+    /// - Columns: features
+    ///
     /// # Panics
-    /// May occur if input `data` contains invalid values.
+    /// Can occur if `data` contains [`f64::NAN`] or [`f64::INFINITY`].
+    ///
+    /// # See also
+    /// [`KMeans::fit_predict`]
     pub fn fit(&self, data: &ArrayBase<impl Data<Elem = f64> + Sync, Ix2>) -> KMeansFitted {
         let mut rng = rand::rng();
 
@@ -121,11 +154,20 @@ impl KMeans {
         KMeansFitted { centroids }
     }
 
-    /// Fit the `KMeans` model and return cluster assignments for each sample. This is equivalent to writing
-    /// `.fit(data).predict(data)`
+    /// Fit the `KMeans` model and return cluster assignments for each sample.
+    ///
+    /// # Data layout
+    /// - Rows: samples / k_clusters
+    /// - Columns: features
     ///
     /// # Panics
-    /// May occur if input `data` contains invalid values.
+    /// Can occur if `data` contains [`f64::NAN`] or [`f64::INFINITY`].
+    ///
+    /// # Note
+    /// This is equivalent to writing `model.fit(data).predict(data)`.
+    ///
+    /// # See also
+    /// [`KMeans::fit`]
     pub fn fit_predict(
         &self,
         data: &ArrayBase<impl Data<Elem = f64> + Sync, Ix2>,
@@ -136,7 +178,12 @@ impl KMeans {
 
 /// A fitted K-Means model containing learned cluster centroids and prediction methods.
 ///
-/// Note: Use the [`centroids`](KMeansFitted::centroids) method to lookup final cluster centroids.
+/// # Note
+/// Use the [`centroids`](KMeansFitted::centroids) method to inspect the final cluster
+/// centroids. The centroid matrix has shape `(k_clusters, n_features)`.
+///
+/// # See also
+/// [`KMeans`] for the trainable model
 pub struct KMeansFitted {
     centroids: Array2<f64>,
 }
@@ -150,7 +197,12 @@ impl KMeansFitted {
 
     /// Assign clusters to the input data, writing results in-place.
     ///
-    /// Note: `data` and `memberships` must agree on the length of their first dimension ([`ndarray::Axis(0)`](ndarray::Axis))
+    /// # Panics
+    /// Can occur if `data` contains [`f64::NAN`] or [`f64::INFINITY`].
+    ///
+    /// # Note
+    /// Arguments `data` and `memberships` must agree on the length of their first dimension
+    /// ([`ndarray::Axis(0)`](ndarray::Axis)).
     pub fn predict_inplace(
         &self,
         data: &ArrayBase<impl Data<Elem = f64> + Sync, Ix2>,
@@ -161,6 +213,12 @@ impl KMeansFitted {
     }
 
     /// Assign clusters to the input data and return the assignments.
+    ///
+    /// # Panics
+    /// Can occur if `data` contains [`f64::NAN`] or [`f64::INFINITY`].
+    ///
+    /// # See also
+    /// [`KMeans::fit_predict`] for a single-step fit + predict
     pub fn predict(&self, data: &ArrayBase<impl Data<Elem = f64> + Sync, Ix2>) -> Array1<usize> {
         let mut memberships = Array1::zeros(data.nrows());
         assign_clusters(data, self.centroids(), &mut memberships);

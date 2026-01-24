@@ -1,6 +1,9 @@
 // Copyright (C) 2025 Piotr Jabłoński
 // Extended copyright information can be found in the LICENSE file.
 
+//! Clustering metrics used by SDC.
+//! Provides accuracy, ARI, and NMI metrics for evaluating clustering quality.
+
 mod acc;
 mod ari;
 mod nmi;
@@ -19,6 +22,7 @@ use burn::{
 };
 use derive_new::new;
 
+/// Input wrapper for clustering metrics.
 #[derive(new)]
 pub(crate) struct ClusteringMetricInput<B: Backend> {
     clusters: Tensor<B, 2>,
@@ -31,7 +35,7 @@ impl<B: Backend> ClusteringMetricInput<B> {
         batch_size
     }
 
-    pub(crate) fn y_true(&self) -> Vec<i32> {
+    pub(crate) fn y_pred(&self) -> Vec<i32> {
         let clusters = self.clusters.clone();
         let batch_size = self.batch_size();
         let y_pred = clusters.argmax(1).reshape([batch_size]);
@@ -42,7 +46,7 @@ impl<B: Backend> ClusteringMetricInput<B> {
             .unwrap()
     }
 
-    pub(crate) fn y_pred(&self) -> Vec<i32> {
+    pub(crate) fn y_true(&self) -> Vec<i32> {
         self.targets
             .to_data()
             .convert_dtype(DType::I32)

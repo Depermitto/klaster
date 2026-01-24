@@ -19,13 +19,14 @@ use crate::{
     },
 };
 
-/// Perform inference with a trained SDC model.
+/// Perform inference with a trained SDC model. Loads a saved model,
+/// runs clustering on provided items, aligns clusters to labels and prints predictions to stdout.
 ///
 /// # Arguments
 ///
-/// * `artifact_dir`: Directory where the trained model is saved.
-/// * `dataset`: Dataset to use for inference.
-/// * `device`: Device to use for inference.
+/// * `artifact_dir`: Directory where the trained model is saved, expected `artifact_dir/model`,
+/// * `dataset`: Dataset to use for inference,
+/// * `device`: Device to use for inference,
 /// * `items`: Items to perform inference on.
 ///
 /// # See also

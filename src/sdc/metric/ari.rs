@@ -7,6 +7,7 @@ use burn::train::metric::state::{FormatOptions, NumericMetricState};
 use burn::train::metric::{Metric, MetricEntry, MetricMetadata, Numeric};
 use std::collections::HashMap;
 
+/// Adjusted Rand Index (ARI) metric.
 #[derive(Default)]
 pub(crate) struct ARIMetric<B: Backend> {
     state: NumericMetricState,
@@ -19,6 +20,10 @@ impl<B: Backend> ARIMetric<B> {
     }
 }
 
+/// Compute the Adjusted Rand Index (ARI).
+///
+/// # Returns
+/// ARI in [-1, 1].
 pub fn ari_score<T>(y_pred: &[T], y_true: &[T]) -> f64
 where
     T: std::cmp::Eq + std::hash::Hash + Copy,

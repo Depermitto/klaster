@@ -4,6 +4,14 @@
 use burn::prelude::Backend;
 use burn::tensor::Tensor;
 
+/// Compute pairwise squared Euclidean distances.
+///
+/// # Params
+/// - `x1`: Embeddings of shape [batch, dim],
+/// - `x2`: Centroids of shape [clusters, dim].
+///
+/// # Returns
+/// A matrix of shape [batch, clusters] with squared distances.
 pub(crate) fn pairwise_distances_squared<B: Backend>(
     x1: Tensor<B, 2>,
     x2: Tensor<B, 2>,

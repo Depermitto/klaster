@@ -7,6 +7,7 @@ use burn::train::metric::state::{FormatOptions, NumericMetricState};
 use burn::train::metric::{Metric, MetricEntry, MetricMetadata, Numeric};
 use std::collections::HashMap;
 
+/// Normalized Mutual Information (NMI) metric.
 #[derive(Default)]
 pub(crate) struct NMIMetric<B: Backend> {
     state: NumericMetricState,
@@ -19,6 +20,10 @@ impl<B: Backend> NMIMetric<B> {
     }
 }
 
+/// Compute Normalized Mutual Information (NMI).
+///
+/// # Returns
+/// NMI in [0, 1].
 pub fn nmi_score<T>(y_pred: &[T], y_true: &[T]) -> f64
 where
     T: std::cmp::Eq + std::hash::Hash + Copy,

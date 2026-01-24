@@ -12,6 +12,18 @@ use derive_new::new;
 pub struct ClusteringLoss;
 
 impl ClusteringLoss {
+    /// Compute the combined reconstruction and clustering loss.
+    ///
+    /// # Params
+    /// - `logits`: Input tensor,
+    /// - `targets`: Reconstructed input tensor,
+    /// - `embeddings`: Latent embeddings from the encoder,
+    /// - `centroids`: Cluster centroids,
+    /// - `gamma`: Focal exponent for reconstruction loss,
+    /// - `alpha`: Weighting for the clustering loss term.
+    ///
+    /// # Returns
+    /// A scalar loss tensor.
     pub fn forward<B: Backend, const D: usize>(
         &self,
         logits: Tensor<B, D>,

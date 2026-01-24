@@ -2,9 +2,10 @@
 // Extended copyright information can be found in the LICENSE file.
 
 //! Convolutional autoencoder configuration and architecture.
+//! Provides [`Autoencoder`] and [`AutoencoderConfig`] for building a convolutional encoder-decoder model used by SDC.
 //!
-//! This module provides [`Autoencoder`] and [`AutoencoderConfig`] structs, as well as
-//! [`burn::prelude::Backend`] implementation.
+//! # See also
+//! [`crate::sdc::SDCConfig`]
 
 use crate::sdc::dataset::Batch;
 use burn::nn::loss::{MseLoss, Reduction};
@@ -18,6 +19,8 @@ use burn::{
     prelude::*,
 };
 
+/// Convolutional autoencoder model used to learn latent embeddings.
+/// Encodes images into a latent vector and reconstructs the input with a decoder.
 #[derive(Module, Debug)]
 pub struct Autoencoder<B: Backend> {
     encoder: Encoder<B>,
@@ -45,16 +48,17 @@ struct Decoder<B: Backend> {
 }
 
 /// Configuration for the Autoencoder model.
+/// Defines convolutional and normalization parameters for the encoder/decoder stack.
 ///
 /// # Params
-/// - `latent_dim`: Dimensionality of the latent space.
-/// - `input_dims`: Dimensions of the input image (height, width).
-/// - `channels`: Number of channels for the convolutional layers (input, hidden, output).
-/// - `groups`: Number of groups for group normalization.
-/// - `leaky_relu_slope`: Negative slope of the Leaky ReLU activation function.
-/// - `kernel_size`: Size of the convolutional kernel.
-/// - `stride`: Stride of the convolution.
-/// - `padding`: Padding for the convolution.
+/// - `latent_dim`: Dimensionality of the latent space,
+/// - `input_dims`: Dimensions of the input image (height, width),
+/// - `channels`: Number of channels for the convolutional layers (input, hidden, output),
+/// - `groups`: Number of groups for group normalization,
+/// - `leaky_relu_slope`: Negative slope of the Leaky ReLU activation function,
+/// - `kernel_size`: Size of the convolutional kernel,
+/// - `stride`: Stride of the convolution,
+/// - `padding`: Padding for the convolution,
 /// - `output_padding`: Output padding for the transposed convolution.
 ///
 /// # Note
@@ -83,6 +87,10 @@ pub struct AutoencoderConfig {
 impl AutoencoderConfig {
     const LAYER_LEN: usize = 2;
 
+    /// Initialize an [`Autoencoder`] from this configuration.
+    ///
+    /// # Note
+    /// The output feature size is inferred from `input_dims`, `kernel_size`, `stride`, and `padding`.
     pub fn init<B: Backend>(&self, device: &B::Device) -> Autoencoder<B> {
         let [input_ch, hidden_ch, output_ch] = self.channels;
 
@@ -134,6 +142,11 @@ impl AutoencoderConfig {
 }
 
 impl<B: Backend> Autoencoder<B> {
+    /// Forward pass returning reconstructed input and latent embeddings.
+    ///
+    /// # Data layout
+    /// - Input: [batch, channels, height, width]
+    /// - Output embeddings: [batch, latent_dim]
     pub fn forward(&self, x: Tensor<B, 4>) -> (Tensor<B, 4>, Tensor<B, 2>) {
         // Encoder
         let x = self.encoder.conv1.forward(x);
@@ -162,6 +175,10 @@ impl<B: Backend> Autoencoder<B> {
         (recon, embeddings)
     }
 
+    /// Forward pass returning regression output for autoencoder pretraining.
+    ///
+    /// # See also
+    /// [`RegressionOutput`]
     pub fn forward_regression(&self, x: Tensor<B, 4>) -> RegressionOutput<B> {
         let (recon, _) = self.forward(x.clone());
         let loss = MseLoss::new().forward(recon.clone(), x.clone(), Reduction::Mean);

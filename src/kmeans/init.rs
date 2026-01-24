@@ -14,6 +14,13 @@ use crate::kmeans::closest_centroid;
 /// - `PlusPlus`: Uses the `KMeans`++ algorithm to choose initial centroids, spreading them out
 ///   by selecting each new centroid with probability proportional to its squared distance
 ///   from the nearest existing centroid.
+///
+/// # Notes
+/// - `k_clusters` must be at least 1.
+/// - `k_clusters` must not exceed the number of rows in the input data.
+///
+/// # See also
+/// - [`crate::kmeans::KMeans`] for the main clustering API
 #[derive(Clone, Copy)]
 pub enum KMeansInit {
     Forgy,
@@ -22,6 +29,13 @@ pub enum KMeansInit {
 
 impl KMeansInit {
     /// Initialize centroids for `KMeans` clustering using the selected method.
+    ///
+    /// # Panics
+    /// Can occur if `k_clusters` is 0, `k_clusters` exceeds the number of rows in `data`,
+    /// or if the data contains [`f64::NAN`] or [`f64::INFINITY`].
+    ///
+    /// # See also
+    /// - [`KMeansInit::Forgy`], [`KMeansInit::PlusPlus`]
     pub fn run(
         &self,
         k_clusters: usize,

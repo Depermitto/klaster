@@ -2,11 +2,11 @@
 // Extended copyright information can be found in the LICENSE file.
 
 mod kmeans;
-pub use kmeans::{KMeans, KMeansInit};
+pub use kmeans::{KMeans, KMeansFitted, KMeansInit};
 
 mod sdc;
 pub use sdc::{
-    AutoencoderConfig, SDCConfig, TrainingConfig,
+    Autoencoder, AutoencoderConfig, ClusteringOutput, SDC, SDCConfig, TrainingConfig,
     dataset::{Dataset, DatasetSplit},
     infer, metric, train,
 };

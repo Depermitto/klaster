@@ -3,7 +3,7 @@
 
 use clap::{Arg, Command};
 use hdbscan::{Hdbscan, HdbscanHyperParams};
-use klaster::sdc::metric::*;
+use klaster::metric::*;
 use linfa::{
     Dataset,
     traits::{Fit, Predict, Transformer},
@@ -39,19 +39,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .help("min_samples for HDBSCAN"),
         )
         .arg(
-            Arg::new("n2d_epochs")
+            Arg::new("sdc_epochs")
                 .long("sdc-epochs")
                 .default_value("1000")
                 .help("Number of epochs for sdc autoencoder training"),
         )
         .arg(
-            Arg::new("n2d_arch")
+            Arg::new("sdc_arch")
                 .long("sdc-arch")
                 .default_value("500,500,2000")
                 .help("Comma-separated layer sizes for sdc autoencoder architecture"),
         )
         .arg(
-            Arg::new("n2d_verbose")
+            Arg::new("sdc_verbose")
                 .long("sdc-verbose")
                 .action(clap::ArgAction::SetTrue)
                 .help("Enable verbose output for sdc training"),

@@ -5,7 +5,7 @@ use crate::KMeans;
 use crate::sdc::dataset::Batch;
 use crate::sdc::metric::{ARIMetric, ClusteringAccuracyMetric, NMIMetric};
 use crate::sdc::model::Centroids;
-use crate::sdc::{AutoencoderConfig, Dataset, SDCConfig};
+use crate::sdc::{AutoencoderConfig, SDCConfig, dataset::Dataset};
 use burn::module::AutodiffModule;
 use burn::{
     data::{dataloader::DataLoaderBuilder, dataloader::batcher::Batcher, dataset::InMemDataset},

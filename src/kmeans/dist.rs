@@ -6,7 +6,7 @@
 use ndarray::{ArrayBase, Data, Dimension, Ix1, Zip};
 
 #[inline]
-pub fn euclidean_sq_precomputed(
+pub(crate) fn euclidean_sq_precomputed(
     a: &ArrayBase<impl Data<Elem = f64>, Ix1>,
     aa_dot: f64,
     b: &ArrayBase<impl Data<Elem = f64>, Ix1>,
@@ -15,7 +15,7 @@ pub fn euclidean_sq_precomputed(
 }
 
 #[inline]
-pub fn naive_euclidean_sq<D: Dimension>(
+pub(crate) fn naive_euclidean_sq<D: Dimension>(
     a: &ArrayBase<impl Data<Elem = f64>, D>,
     b: &ArrayBase<impl Data<Elem = f64>, D>,
 ) -> f64 {

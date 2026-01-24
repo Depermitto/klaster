@@ -135,7 +135,7 @@ impl Dataset {
 
     /// Get this dataset's [`DatasetBatcher`].
     #[must_use]
-    pub fn batcher(&self) -> DatasetBatcher {
+    pub(crate) fn batcher(&self) -> DatasetBatcher {
         let data = &self.train_split.images;
 
         let mut sum = 0.0f64;
@@ -160,7 +160,7 @@ impl Dataset {
 /// Convert [`ItemRaw`]s to a [`Batch`]. This simplifies to converting raw data from CPU+RAM to
 /// a proper format that the [`burn::prelude::Device`] understands (usually a Tensor on a GPU+VRAM).
 #[derive(new, Debug, Clone, Copy)]
-pub struct DatasetBatcher {
+pub(crate) struct DatasetBatcher {
     dims: [usize; 2],
     mean: f32,
     std: f32,
@@ -175,9 +175,9 @@ pub struct ItemRaw {
 
 /// Batch of data on a [`burn::prelude::Device`].
 #[derive(Clone, Debug)]
-pub struct Batch<B: Backend> {
-    pub images: Tensor<B, 4>,
-    pub targets: Tensor<B, 1, Int>,
+pub(crate) struct Batch<B: Backend> {
+    pub(crate) images: Tensor<B, 4>,
+    pub(crate) targets: Tensor<B, 1, Int>,
 }
 
 impl<B: Backend> Batcher<B, ItemRaw, Batch<B>> for DatasetBatcher {

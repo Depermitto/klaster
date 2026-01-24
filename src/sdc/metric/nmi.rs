@@ -8,13 +8,13 @@ use burn::train::metric::{Metric, MetricEntry, MetricMetadata, Numeric};
 use std::collections::HashMap;
 
 #[derive(Default)]
-pub struct NMIMetric<B: Backend> {
+pub(crate) struct NMIMetric<B: Backend> {
     state: NumericMetricState,
     _b: B,
 }
 
 impl<B: Backend> NMIMetric<B> {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self::default()
     }
 }

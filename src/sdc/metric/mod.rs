@@ -5,9 +5,13 @@ mod acc;
 mod ari;
 mod nmi;
 
-pub use acc::{ClusteringAccuracyMetric, acc_score, align_clusters};
-pub use ari::{ARIMetric, ari_score};
-pub use nmi::{NMIMetric, nmi_score};
+pub use acc::acc_score;
+pub use ari::ari_score;
+pub use nmi::nmi_score;
+
+pub(crate) use acc::{ClusteringAccuracyMetric, align_clusters};
+pub(crate) use ari::ARIMetric;
+pub(crate) use nmi::NMIMetric;
 
 use burn::{
     prelude::{Backend, Int, Tensor},
@@ -16,7 +20,7 @@ use burn::{
 use derive_new::new;
 
 #[derive(new)]
-pub struct ClusteringMetricInput<B: Backend> {
+pub(crate) struct ClusteringMetricInput<B: Backend> {
     clusters: Tensor<B, 2>,
     targets: Tensor<B, 1, Int>,
 }
@@ -27,7 +31,7 @@ impl<B: Backend> ClusteringMetricInput<B> {
         batch_size
     }
 
-    pub fn y_true(&self) -> Vec<i32> {
+    pub(crate) fn y_true(&self) -> Vec<i32> {
         let clusters = self.clusters.clone();
         let batch_size = self.batch_size();
         let y_pred = clusters.argmax(1).reshape([batch_size]);
@@ -38,7 +42,7 @@ impl<B: Backend> ClusteringMetricInput<B> {
             .unwrap()
     }
 
-    pub fn y_pred(&self) -> Vec<i32> {
+    pub(crate) fn y_pred(&self) -> Vec<i32> {
         self.targets
             .to_data()
             .convert_dtype(DType::I32)

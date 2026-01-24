@@ -10,11 +10,13 @@ use burn::{
     train::metric::Adaptor,
 };
 
-use crate::sdc::{
-    Dataset, TrainingConfig,
-    dataset::ItemRaw,
-    metric::{ClusteringMetricInput, acc_score, align_clusters},
-    model::Centroids,
+use crate::{
+    TrainingConfig,
+    sdc::{
+        dataset::{Dataset, ItemRaw},
+        metric::{ClusteringMetricInput, acc_score, align_clusters},
+        model::Centroids,
+    },
 };
 
 /// Perform inference with a trained SDC model.

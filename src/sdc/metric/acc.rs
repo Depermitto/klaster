@@ -8,18 +8,18 @@ use burn::train::metric::{Metric, MetricEntry, MetricMetadata, Numeric};
 use std::collections::HashMap;
 
 #[derive(Default)]
-pub struct ClusteringAccuracyMetric<B: Backend> {
+pub(crate) struct ClusteringAccuracyMetric<B: Backend> {
     state: NumericMetricState,
     _b: B,
 }
 
 impl<B: Backend> ClusteringAccuracyMetric<B> {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self::default()
     }
 }
 
-pub fn align_clusters<T>(y_pred: &[T], y_true: &[T]) -> Vec<T>
+pub(crate) fn align_clusters<T>(y_pred: &[T], y_true: &[T]) -> Vec<T>
 where
     T: std::cmp::Eq + std::hash::Hash + Copy,
 {

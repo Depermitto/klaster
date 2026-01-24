@@ -17,7 +17,6 @@ mod model;
 mod training;
 
 pub use autoencoder::AutoencoderConfig;
-pub use dataset::Dataset;
 pub use inference::infer;
 pub use model::SDCConfig;
 pub use training::{TrainingConfig, train};

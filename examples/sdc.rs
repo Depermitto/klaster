@@ -3,7 +3,7 @@
 
 use burn::optim::AdamConfig;
 use clap::{Arg, Command};
-use klaster::sdc::*;
+use klaster::*;
 use rand::{rng, seq::SliceRandom};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

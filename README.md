@@ -1,6 +1,6 @@
 # Klaster
 
-*Klaster* is a clustering library for the Rust programming language built as part of an engineering thesis at [Warsaw University of Technology](https://eng.pw.edu.pl/). It focuses on two complementary approaches: a fast, classical K-Means implementation for low-dimensional/tabular data, and an original deep-clustering model SDC designed for image datasets representing monochrome symbol images such as handwritten digits. The goal is to narrow the gap between Rust and the more mature Python ecosystem by providing high-performance, well-documented clustering tools in a single, cohesive library.
+*Klaster* is a clustering library for the Rust programming language built as part of an engineering thesis at [Warsaw University of Technology](https://eng.pw.edu.pl/). It focuses on two complementary approaches: a fast, classical K-Means implementation for low-dimensional/tabular data, and an original deep-clustering model SDC designed for image datasets representing monochrome symbol images such as handwritten digits. The goal is to narrow the gap between Rust and the more mature Python ecosystem by providing well-documented clustering tools in a single, cohesive library.
 
 ## Getting Started
 
@@ -48,8 +48,8 @@ The SDC example trains a model and then performs inference on a shuffled batch o
 // See examples/sdc.rs for the full runnable example.
 use klaster::*;
 
-let dataset_name = // provided via cmdline argument `dataset`
-let dataset_path = // provided via cmdline argument `dataset-path`
+let dataset_name = /* provided via cmdline argument `dataset` */;
+let dataset_path = /* provided via cmdline argument `dataset-path`*/;
 
 let (dataset, latent_dim) = match dataset_name.as_str() {
     "mnist" => (Dataset::mnist(dataset_path), 10),

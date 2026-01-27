@@ -12,9 +12,9 @@ use burn::{
 
 use crate::{
     TrainingConfig,
+    metric::{ClusteringMetricInput, acc_score, align_clusters},
     sdc::{
         dataset::{Dataset, ItemRaw},
-        metric::{ClusteringMetricInput, acc_score, align_clusters},
         model::Centroids,
     },
 };

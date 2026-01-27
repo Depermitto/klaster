@@ -1,7 +1,7 @@
 // Copyright (C) 2025 Piotr Jabłoński
 // Extended copyright information can be found in the LICENSE file.
 
-use crate::sdc::metric::ClusteringMetricInput;
+use crate::metric::ClusteringMetricInput;
 use burn::prelude::*;
 use burn::train::metric::state::{FormatOptions, NumericMetricState};
 use burn::train::metric::{Metric, MetricEntry, MetricMetadata, Numeric};
@@ -23,7 +23,7 @@ impl<B: Backend> ARIMetric<B> {
 /// Compute the Adjusted Rand Index (ARI).
 ///
 /// # Returns
-/// ARI in [-1, 1].
+/// ARI in \[-1, 1\].
 pub fn ari_score<T>(y_pred: &[T], y_true: &[T]) -> f64
 where
     T: std::cmp::Eq + std::hash::Hash + Copy,

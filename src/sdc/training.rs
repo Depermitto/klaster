@@ -2,8 +2,8 @@
 // Extended copyright information can be found in the LICENSE file.
 
 use crate::KMeans;
+use crate::metric::{ARIMetric, ClusteringAccuracyMetric, NMIMetric};
 use crate::sdc::dataset::Batch;
-use crate::sdc::metric::{ARIMetric, ClusteringAccuracyMetric, NMIMetric};
 use crate::sdc::model::Centroids;
 use crate::sdc::{AutoencoderConfig, SDCConfig, dataset::Dataset};
 use burn::module::AutodiffModule;

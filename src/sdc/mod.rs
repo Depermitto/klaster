@@ -13,7 +13,6 @@ mod clustering;
 pub mod dataset;
 mod inference;
 mod loss;
-pub mod metric;
 mod model;
 mod training;
 

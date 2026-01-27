@@ -1,8 +1,8 @@
 // Copyright (C) 2025 Piotr Jabłoński
 // Extended copyright information can be found in the LICENSE file.
 
-//! Clustering metrics used by SDC.
-//! Provides accuracy, ARI, and NMI metrics for evaluating clustering quality.
+//! Metrics used for evaluating clustering quality.
+//! Provides Accuracy, ARI, and NMI.
 
 mod acc;
 mod ari;

@@ -8,5 +8,7 @@ mod sdc;
 pub use sdc::{
     Autoencoder, AutoencoderConfig, ClusteringOutput, SDC, SDCConfig, TrainingConfig,
     dataset::{Dataset, DatasetSplit},
-    infer, metric, train,
+    infer, train,
 };
+
+pub mod metric;

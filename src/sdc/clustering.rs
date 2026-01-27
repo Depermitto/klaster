@@ -1,8 +1,8 @@
 // Copyright (C) 2025 Piotr Jabłoński
 // Extended copyright information can be found in the LICENSE file.
 
+use crate::metric::ClusteringMetricInput;
 use crate::sdc::cdist::pairwise_distances_squared;
-use crate::sdc::metric::ClusteringMetricInput;
 use burn::prelude::{Backend, Int, Tensor};
 use burn::tensor::Transaction;
 use burn::train::metric::{Adaptor, ItemLazy, LossInput};

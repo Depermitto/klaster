@@ -1,7 +1,7 @@
 // Copyright (C) 2025 Piotr Jabłoński
 // Extended copyright information can be found in the LICENSE file.
 
-use crate::sdc::metric::ClusteringMetricInput;
+use crate::metric::ClusteringMetricInput;
 use burn::prelude::*;
 use burn::train::metric::state::{FormatOptions, NumericMetricState};
 use burn::train::metric::{Metric, MetricEntry, MetricMetadata, Numeric};
@@ -23,7 +23,7 @@ impl<B: Backend> NMIMetric<B> {
 /// Compute Normalized Mutual Information (NMI).
 ///
 /// # Returns
-/// NMI in [0, 1].
+/// NMI in \[0, 1\].
 pub fn nmi_score<T>(y_pred: &[T], y_true: &[T]) -> f64
 where
     T: std::cmp::Eq + std::hash::Hash + Copy,

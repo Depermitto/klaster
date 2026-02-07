@@ -12,7 +12,7 @@ pub use acc::acc_score;
 pub use ari::ari_score;
 pub use nmi::nmi_score;
 
-pub(crate) use acc::{ClusteringAccuracyMetric, align_clusters};
+pub(crate) use acc::ClusteringAccuracyMetric;
 pub(crate) use ari::ARIMetric;
 pub(crate) use nmi::NMIMetric;
 

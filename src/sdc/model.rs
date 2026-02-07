@@ -5,6 +5,7 @@ use crate::sdc::autoencoder::Autoencoder;
 use crate::sdc::clustering::ClusteringOutput;
 use crate::sdc::dataset::Batch;
 use crate::sdc::loss::ClusteringLoss;
+use burn::module::Param;
 use burn::prelude::*;
 use burn::tensor::Distribution;
 use burn::tensor::backend::AutodiffBackend;
@@ -21,7 +22,7 @@ use burn::train::{TrainOutput, TrainStep, ValidStep};
 #[derive(Module, Debug)]
 pub struct SDC<B: Backend> {
     pub autoencoder: Autoencoder<B>,
-    pub centroids: Tensor<B, 2>,
+    pub centroids: Param<Tensor<B, 2>>,
     alpha: f64,
     gamma: f64,
 }
@@ -71,13 +72,15 @@ impl SDCConfig {
         SDC {
             autoencoder,
             centroids: match centroids {
-                Centroids::Empty => Tensor::zeros([self.n_clusters, self.latent_dim], device),
-                Centroids::Random => Tensor::random(
+                Centroids::Empty => {
+                    Param::from_tensor(Tensor::zeros([self.n_clusters, self.latent_dim], device))
+                }
+                Centroids::Random => Param::from_tensor(Tensor::random(
                     [self.n_clusters, self.latent_dim],
                     Distribution::Normal(0.0, 0.04),
                     device,
-                ),
-                Centroids::Initialized(centroids) => centroids,
+                )),
+                Centroids::Initialized(centroids) => Param::from_tensor(centroids),
             },
             alpha: self.alpha,
             gamma: self.gamma,
@@ -105,13 +108,13 @@ impl<B: Backend> SDC<B> {
             x,
             recon,
             embeddings.clone(),
-            self.centroids.clone(),
+            self.centroids.val(),
             self.gamma,
             self.alpha,
         );
 
         ClusteringOutput {
-            centroids: self.centroids.clone(),
+            centroids: self.centroids.val(),
             embeddings,
             loss,
             targets,

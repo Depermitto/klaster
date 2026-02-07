@@ -12,15 +12,14 @@ use burn::{
 
 use crate::{
     TrainingConfig,
-    metric::{ClusteringMetricInput, acc_score, align_clusters},
+    metric::ClusteringMetricInput,
     sdc::{
         dataset::{Dataset, ItemRaw},
         model::Centroids,
     },
 };
 
-/// Perform inference with a trained SDC model. Loads a saved model,
-/// runs clustering on provided items, aligns clusters to labels and prints predictions to stdout.
+/// Perform inference with a trained SDC model.
 ///
 /// # Arguments
 ///
@@ -29,14 +28,17 @@ use crate::{
 /// * `device`: Device to use for inference,
 /// * `items`: Items to perform inference on.
 ///
+/// # Returns
+/// Tuple of unaligned predictions and the ground truth: (y_pred, y_true)
+///
 /// # See also
-/// [`crate::sdc::train`]
+/// [`crate::sdc::train`], [`crate::metric::acc_score`], [`crate::metric::nmi_score`], [`crate::metric::ari_score`]
 pub fn infer<B: Backend>(
     artifact_dir: &str,
     dataset: &Dataset,
     device: &B::Device,
     items: Vec<ItemRaw>,
-) {
+) -> (Vec<i32>, Vec<i32>) {
     // Load trained model
     let config = TrainingConfig::load(format!("{artifact_dir}/config.json"))
         .expect("Config should exist for the model; run train first");
@@ -50,21 +52,13 @@ pub fn infer<B: Backend>(
 
     // Predict clusters
     let batcher = dataset.batcher();
-    let batch = batcher.batch(items.clone(), device);
+    let batch = batcher.batch(items, device);
     let output = model.forward_clustering(batch.images, batch.targets);
 
     // Align clusters to labels
     let metric_input: ClusteringMetricInput<B> = output.adapt();
     let y_pred = metric_input.y_pred();
     let y_true = metric_input.y_true();
-    let aligned_preds = align_clusters(&y_pred, &y_true);
 
-    // Print to compare
-    for (p, t) in aligned_preds.iter().zip(y_true.iter()) {
-        println!("p: {} | t: {}", p, t);
-    }
-    println!(
-        "Correct: {}%",
-        (acc_score(&y_pred, &y_true) * 100f64) as i32
-    );
+    (y_pred, y_true)
 }

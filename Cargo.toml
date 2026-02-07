@@ -27,7 +27,7 @@ burn = { version = "~0.18", features = [
     "fusion",
     "vulkan",
 ], default-features = false }
-burn-ndarray = "0.18.0"
+burn-ndarray = "~0.18"
 rand = "0.9.1"
 mnist = "0.6.0"
 serde = "1.0.221"

@@ -6,6 +6,8 @@ use clap::{Arg, Command};
 use klaster::*;
 use rand::{rng, seq::SliceRandom};
 
+type MyBackend = burn::backend::Vulkan;
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = Command::new("sdc")
         .about("Train the SDC model and run inference for test data")
@@ -39,28 +41,41 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     let artifact_dir = "/tmp/sdc";
     let device = &Default::default();
-    train::<burn::backend::Autodiff<burn::backend::Vulkan>>(
+
+    // Train
+    train::<burn::backend::Autodiff<MyBackend>>(
         artifact_dir,
         TrainingConfig::new(
             SDCConfig::new(dbg!(dataset.n_classes()), latent_dim).with_alpha(1.05),
-            AutoencoderConfig::new(latent_dim, dataset.item_dims, [1, 32, 64], 8),
+            AutoencoderConfig::new(latent_dim, dataset.item_dims, [1, 32, 64], 32),
             AdamConfig::new(),
         )
         .with_num_epochs(10)
-        .with_lr(0.00183)
-        .with_batch_size(16),
+        .with_lr(0.005)
+        .with_batch_size(64),
         &dataset,
         device,
     );
 
     let mut rng = rng();
+    // Load subset of the test dataset
     let mut items = dataset.test_items();
     if items.is_empty() {
         items = dataset.train_items();
     }
     items.shuffle(&mut rng);
-    let n = std::cmp::min(256, items.len());
-    infer::<burn::backend::Vulkan>(artifact_dir, &dataset, device, items[0..n].to_vec());
+    let n = std::cmp::min(1 << 13, items.len());
+
+    // Infer
+    let (y_pred, y_true) = infer::<MyBackend>(artifact_dir, &dataset, device, items[0..n].to_vec());
+
+    // Print to compare
+    println!(
+        "Accuracy: {}%\nNMI: {}\nARI: {}",
+        (metric::acc_score(&y_pred, &y_true) * 100f64) as i32,
+        metric::nmi_score(&y_pred, &y_true),
+        metric::ari_score(&y_pred, &y_true)
+    );
 
     Ok(())
 }

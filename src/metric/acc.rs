@@ -20,7 +20,7 @@ impl<B: Backend> ClusteringAccuracyMetric<B> {
     }
 }
 
-pub(crate) fn align_clusters<T>(y_pred: &[T], y_true: &[T]) -> Vec<T>
+pub fn align_clusters<T>(y_pred: &[T], y_true: &[T]) -> Vec<T>
 where
     T: std::cmp::Eq + std::hash::Hash + Copy,
 {
